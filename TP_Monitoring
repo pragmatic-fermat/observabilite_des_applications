@@ -1,0 +1,6 @@
+
+#Objectifs 
+- Installation d’un agent NodeExporter pour publier les métriques systèmes d’un serveur Linux
+- Collecte des métriques par Prometheus
+- Visualisation dans Grafana 
+- Installation d’un agent Datadog pour collecter les métriques d’un serveur Nginx/PHP sous Docker
