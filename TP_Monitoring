@@ -222,11 +222,42 @@ Supposons que nous souhaitions connaitre le nombre de ligne dans les tables d'un
 
 ### Installation d'une base de données sur le serveur supervisé
 
-```apt install -y mariadb```
+```
+apt install -y mariadb
+```
 
-Injection d'une basse de donnée
+Injection d'une base de données nommée `classicmodels`
 
-##TODO mysql < mysql.dump
+```
+cd /home/
+curl https://www.mysqltutorial.org/wp-content/uploads/2023/10/mysqlsampledatabase.zip
+gunzip mysqlsampledatabase.zip
+```
+
+Puis
+```
+mysql -u root -p
+```
+Ce qui donne 
+```
+Enter password: ********
+mysql>
+```
+
+Enfin, injectons la DB
+```
+> source mysqlsampledatabase.sql;
+> show databases;
++--------------------+
+| Database           |
++--------------------+
+| classicmodels      |
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+```
 
 ### Configuration de l'agent Datadog
 
