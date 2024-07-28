@@ -262,6 +262,42 @@ Enfin, injectons la DB
 ### Configuration de l'agent Datadog
 
 Sur le serveur supervisé :
+```
+cd /etc/datadog/conf.d/mysql
+```
 
-cd /etc/datadog/conf.d
-##TO DO
+Renommer le fichier `conf.yaml.sample` en `conf.yaml` et injecter (en faisant attention aux indentations) quelque chose comme ceci:
+
+```
+init_config:
+instances:
+  - host: localhost
+    dbm: true
+    username: root
+    password: xxx
+    port: 3306
+
+    custom_queries:
+      - query: SELECT COUNT(*) FROM classicmodels.customers
+        columns:
+         - name: classicmodels.customers
+           type: gauge
+      - query: SELECT COUNT(*) FROM classicmodels.employees
+        columns:
+         - name: classicmodels.employees
+           type: gauge
+```
+
+Relancer datadog et vérifier que la plugin SQL est sans erreur :
+
+```
+systemctl restart datadog-agent
+dd-agent status
+```
+
+Ensuite aller dans Datadog :
+- activer l'intégration
+- explorer les métriques
+- dans un dasboard ajouter une table montrant le nombre de customers et de employees
+
+##TO DO screenshot
