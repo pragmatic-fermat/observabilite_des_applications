@@ -4,3 +4,164 @@
 - Collecte des métriques par Prometheus
 - Visualisation dans Grafana 
 - Installation d’un agent Datadog pour collecter les métriques d’un serveur Nginx/PHP sous Docker
+
+Dans ce TP nous voyons 2 approches de la récupération des métriques :
+- mode Pull : un serveur central récupère les métriques, c'est le cas de Prometheus
+- mode Push : sur chaque équipement, un agent exporte les métriques vers un serveur central, c'est le cas de Datadog
+
+
+## NodeExporter
+
+### Installation d'un serveur Prometheus
+
+Sur le serveur de supervision, vérifions que docker est bien installé
+```
+docker -v
+```
+
+Créeons le répertoire /home/prometheus :
+```
+mkdir /home/prometheus
+cd /home/prometheus
+```
+
+Plaçons dans ce répertoire le fichier ```docker-compose.yaml``` ci-dessous qui définit le service :
+
+```
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+```
+
+Créeons le fichier de configuration dans ```/home/prometheus/prometheus.yml``` :
+
+```
+global:
+  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+```
+
+Lançons le serveur :
+```
+docker compose create
+docker compose up -d
+```
+
+##TODO Consultation page Prometheus
+
+### Installation de NodeExporter sur un autre serveur
+
+Sur un autre serveur, installons NodeExporter :
+
+Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192)
+
+Nb : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
+
+### Supervision du serveur
+
+Sur le serveur Prometheus, modifier le fichier ```/home/prometheus/prometheus.yml```, afin d'y ajouter :
+
+```
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['your-node-exporter-host:9100']
+```
+
+NB : remplacer ```your-node-exporter-host``` par la véritable IP du serveur à superviser
+
+Relancer prometheus :
+```
+cd /home/prometheus
+docker compose restart -d
+```
+
+##TODO Consultation page NodeExporter
+
+### Ajout du service Grafana
+
+Grafana va être executé sous la forme d'un container Docker.
+Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi :
+
+```
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana-enterprise
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+     driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:
+```
+
+Relancons docker-compose :
+```
+docker compose up -d
+```
+
+Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin/admin :
+
+- Navigate to the gear icon (⚙️) on the left sidebar and select “Data Sources.”
+- Click on “Add your first data source.”
+- Choose “Prometheus” from the list.
+- Set the URL to http://prometheus:9090.
+- Click “Save & Test” to verify the connection.
+
+### Dashboard Grafana
+
+- Visit the Grafana Dashboard page for the Node Exporter Full dashboard.
+- Copy the dashboard ID from the URL. In this case, the ID is 1860.
+- On the left sidebar, click on the “+” icon to open the “Create” menu.
+- In the “Create” menu, select “Import” to access the Import Dashboard page.
+- In the “Grafana.com Dashboard” section, paste the copied dashboard ID (1860) into the “Grafana.com Dashboard ID” field.
+- Click the “Load” button. Grafana will load the dashboard details.
+
+Once the import is complete, you’ll be directed to the imported dashboard. Navigate to the Dashboards section in the left sidebar, and you should see the newly imported Node Exporter Full dashboard.
