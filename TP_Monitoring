@@ -1,18 +1,28 @@
 
-#Objectifs 
-- Installation d’un agent NodeExporter pour publier les métriques systèmes d’un serveur Linux
-- Collecte des métriques par Prometheus
-- Visualisation dans Grafana 
-- Installation d’un agent Datadog pour collecter les métriques d’un serveur Nginx/PHP sous Docker
+# Objectifs 
 
 Dans ce TP nous voyons 2 approches de la récupération des métriques :
+
 - mode Pull : un serveur central récupère les métriques, c'est le cas de Prometheus
 - mode Push : sur chaque équipement, un agent exporte les métriques vers un serveur central, c'est le cas de Datadog
 
+# Contenu
 
-## NodeExporter
+- [NodeExporter/Prometheus/Grafana](#nodeexporterprometheusgrafana)
+    - [Utilisation de NodeExporter pour publier les métriques systèmes d’un serveur Linux](#nodeexporter)
+    - [Installation de NodeExporter](#installation-de-nodeexporter-sur-un-autre-serveur)
+    - [Collecte des métriques par Prometheus](#installation-dun-serveur-prometheus)
+    - [Visualisation dans Grafana](#dashboard-grafana)
+    - [Ajout de metric custom dans NodeExporter](#ajout-dune-metrique-custom-dans-nodeexporter)
 
-### Installation d'un serveur Prometheus
+- [Datadog](#supervision-avec-datadog)
+    - [Installation de l'agent Datadog](#installation-de-lagent-datadog)
+    - [Recupération d'une metrique Custom](#metrique-custom-dans-datadog)
+
+
+# NodeExporter/Prometheus/Grafana
+
+## Installation d'un serveur Prometheus
 
 Sur le serveur de supervision, vérifions que docker est bien installé
 ```
@@ -71,9 +81,10 @@ docker compose create
 docker compose up -d
 ```
 
-##TODO Consultation page Prometheus
+Naviguez sur la page Prometheus : http://IP_srv_prom:9090 , et explorez les métriques.
 
-### Installation de NodeExporter sur un autre serveur
+
+## Installation de NodeExporter sur un autre serveur
 
 Sur un autre serveur, installons NodeExporter :
 
@@ -81,7 +92,7 @@ Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/
 
 Nb : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
 
-### Supervision du serveur
+## Supervision du serveur Linux
 
 Sur le serveur Prometheus, modifier le fichier ```/home/prometheus/prometheus.yml```, afin d'y ajouter :
 
@@ -99,7 +110,7 @@ cd /home/prometheus
 docker compose restart -d
 ```
 
-##TODO Consultation page NodeExporter
+Naviguez sur la page NodeExporter : http://IP_srv_supervise:9100/metrics 
 
 ### Ajout du service Grafana
 
@@ -155,7 +166,7 @@ Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin
 - Set the URL to http://prometheus:9090.
 - Click “Save & Test” to verify the connection.
 
-### Dashboard Grafana
+## Dashboard Grafana
 
 - Visit the Grafana Dashboard page for the Node Exporter Full dashboard.
 - Copy the dashboard ID from the URL. In this case, the ID is 1860.
@@ -165,3 +176,61 @@ Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin
 - Click the “Load” button. Grafana will load the dashboard details.
 
 Once the import is complete, you’ll be directed to the imported dashboard. Navigate to the Dashboards section in the left sidebar, and you should see the newly imported Node Exporter Full dashboard.
+
+## Ajout d'une metrique custom dans NodeExporter
+
+Sur le serveur supervisé :
+
+```
+mkdir /root/textfile
+```
+
+Configurez nodeexporter pour prendre en compte ce répertoire :
+```
+./node_exporter --collector.textfile.directory=/home/textfile
+```
+
+Créeons (à la main) un fichier contenant notre metrique custom (dont la valeur vaut le nombre de secondes depuis l'epoch):
+```
+echo ma_metrique_custom $(date +%s) > /home/textfile/ma_metrique_custom.prom
+```
+
+Naviguez sur la page NodeExporter : http://IP_srv_supervise:9100/metrics  et constatez que notre métrique est incluse dans la page !
+
+Cette métrique doit également être consutable sur Prometheus directement : http://IP_srv_prom:9090
+
+Plus de détails [ici](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)
+Notez la mention de ```spunge``` afin d'écrire atomiquement le fichier ```textfile```.
+
+
+
+# Supervision avec Datadog
+
+## Installation de l'agent Datadog
+
+Créez un compte (gratuit) sur [Datadog](http://datadog.com)
+
+Suivez la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) avec la création à la volée d'une clé API.
+
+Au bout de quelques minutes, votre serveur va aparaitre dans l'interface.
+
+Vous pouvez créer une alerte (monitor) sur cette [page](https://app.datadoghq.eu/monitors/create) en choisissant par exemple la metrique ```system.disk.free``` ou autre...)
+
+## Metrique custom dans Datadog
+
+Supposons que nous souhaitions connaitre le nombre de ligne dans les tables d'une base de donnée.
+
+### Installation d'une base de données sur le serveur supervisé
+
+```apt install -y mariadb```
+
+Injection d'une basse de donnée
+
+##TODO mysql < mysql.dump
+
+### Configuration de l'agent Datadog
+
+Sur le serveur supervisé :
+
+cd /etc/datadog/conf.d
+##TO DO
