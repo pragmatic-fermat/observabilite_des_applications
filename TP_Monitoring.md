@@ -22,6 +22,10 @@ Dans ce TP nous voyons 2 approches de la récupération des métriques :
 
 # NodeExporter/Prometheus/Grafana
 
+On utilise 2 VMs :
+- le serveur de supervision sur lequel on va installer Prometheus/Grafana
+- le serveur supervisé sur lequel on va installer NodeExporter
+
 ## Installation d'un serveur Prometheus
 
 Sur le serveur de supervision, vérifions que docker est bien installé
@@ -35,11 +39,9 @@ mkdir /home/prometheus
 cd /home/prometheus
 ```
 
-Plaçons dans ce répertoire le fichier ```docker-compose.yaml``` ci-dessous qui définit le service :
+Plaçons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service :
 
 ```
-version: '3.8'
-
 services:
   prometheus:
     image: prom/prometheus
@@ -158,24 +160,25 @@ Relancons docker-compose :
 docker compose up -d
 ```
 
-Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin/admin :
+Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin/admin.
 
-- Navigate to the gear icon (⚙️) on the left sidebar and select “Data Sources.”
-- Click on “Add your first data source.”
-- Choose “Prometheus” from the list.
-- Set the URL to http://prometheus:9090.
-- Click “Save & Test” to verify the connection.
+##TODO
+- Cliquer sur l'icone (⚙️) sur la gauche and sélectionner “Data Sources.”
+- Clicquer sur “Add your first data source.”
+- Choisir “Prometheus” dans la liste
+- Rensigner l'URL http://prometheus:9090 (prometheus est résolu en interne par docker)
+- Cliquer sur  “Save & Test” pour vérifier la connection.
 
 ## Dashboard Grafana
 
-- Visit the Grafana Dashboard page for the Node Exporter Full dashboard.
-- Copy the dashboard ID from the URL. In this case, the ID is 1860.
-- On the left sidebar, click on the “+” icon to open the “Create” menu.
-- In the “Create” menu, select “Import” to access the Import Dashboard page.
-- In the “Grafana.com Dashboard” section, paste the copied dashboard ID (1860) into the “Grafana.com Dashboard ID” field.
-- Click the “Load” button. Grafana will load the dashboard details.
+- Chercher dans la page [Grafana Dashboard](https://grafana.com/grafana/dashboards/) le dashboard ”Node Exporter Full”.
+- Copier le dashboard ID. Dans notre case, l'ID est 1860.
+- Sur la gauche, clicquer sur le  “+” pour ouvrir le menu “Create” .
+- Dans le menu “Create” , selectionner “Import”
+- Dans la section “Grafana.com Dashboard” , copier le dashboard ID (1860) dans le champ “Grafana.com Dashboard ID” .
+- Cliquer sur le bouton “Load”
 
-Once the import is complete, you’ll be directed to the imported dashboard. Navigate to the Dashboards section in the left sidebar, and you should see the newly imported Node Exporter Full dashboard.
+Naviger dans la section des Dashboard.... 
 
 ## Ajout d'une metrique custom dans NodeExporter
 
