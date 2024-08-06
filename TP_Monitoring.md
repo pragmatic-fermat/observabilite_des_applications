@@ -29,9 +29,11 @@ On utilise 2 VMs :
 
 ## Installation d'un serveur Prometheus
 
-Sur le serveur de supervision, vérifions que docker est bien installé
+Connectez vous au serveur de supervision suivant les accès fournis par l'animateur.
+
+Vérifions que le moteur docker est bien installé
 ```
-docker -v
+docker version
 ```
 
 Créeons le répertoire /home/prometheus :
@@ -40,7 +42,7 @@ mkdir /home/prometheus
 cd /home/prometheus
 ```
 
-Plaçons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service :
+Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service :
 
 ```
 services:
@@ -78,6 +80,8 @@ scrape_configs:
       - targets: ['prometheus:9090']
 ```
 
+Notez l'utilisation du nom `prometheus` qui sera résolu par Docker.
+
 Lançons le serveur :
 ```
 docker compose create
@@ -85,15 +89,23 @@ docker compose up -d
 ```
 
 Naviguez sur la page Prometheus : http://IP_srv_prom:9090 , et explorez les métriques.
-
+Par exemple, retrouvez la métrique qui donne le timestamp de lancement du service prometheus.
 
 ## Installation de NodeExporter sur un autre serveur
 
-Sur un autre serveur, installons NodeExporter :
+Sur un autre serveur (appellons-le `clt`), installons NodeExporter :
 
 Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192)
 
-Nb : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
+NB : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
+NB2 : en debut d'étape 7. , tapez `systemctl enable node_exporter`
+
+
+On pense à ouvrir le firewall pour le flux TCP/9100 entrant :
+```
+ufw allow 9100/tcp
+```
+Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics 
 
 ## Supervision du serveur Linux
 
@@ -102,23 +114,25 @@ Sur le serveur Prometheus, modifier le fichier ```/home/prometheus/prometheus.ym
 ```
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['your-node-exporter-host:9100']
+      - targets: ['IP_clt:9100']
 ```
 
-NB : remplacer ```your-node-exporter-host``` par la véritable IP du serveur à superviser
+NB : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
+NB2 : attention à bien respecter l'indentation du fichier YAML
 
 Relancer prometheus :
 ```
 cd /home/prometheus
-docker compose restart -d
+docker compose restart
 ```
+Naviguez sur la page Prometheus : http://IP_srv:9090/targets 
 
-Naviguez sur la page NodeExporter : http://IP_srv_supervise:9100/metrics 
+Requetez et graphez par exemple la metrique `node_network_receive_bytes_total`
 
 ### Ajout du service Grafana
 
 Grafana va être executé sous la forme d'un container Docker.
-Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi :
+Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc grafana et son volume) :
 
 ```
 services:
@@ -158,40 +172,47 @@ volumes:
 
 Relancons docker-compose :
 ```
+docker compose create
 docker compose up -d
 ```
 
-Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin/admin.
+Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin/admin : http://IP_srv:3000
 
-##TODO
-- Cliquer sur l'icone (⚙️) sur la gauche and sélectionner “Data Sources.”
-- Clicquer sur “Add your first data source.”
+- Aller dans le menu sur la gauche and sélectionner “Connections / Data Sources.”
+- Clicquer sur “Add your  data source.”
 - Choisir “Prometheus” dans la liste
-- Rensigner l'URL http://prometheus:9090 (prometheus est résolu en interne par docker)
+- Renseigner l'URL http://prometheus:9090 (prometheus est résolu en interne par docker)
 - Cliquer sur  “Save & Test” pour vérifier la connection.
 
 ## Dashboard Grafana
 
 - Chercher dans la page [Grafana Dashboard](https://grafana.com/grafana/dashboards/) le dashboard ”Node Exporter Full”.
-- Copier le dashboard ID. Dans notre case, l'ID est 1860.
-- Sur la gauche, clicquer sur le  “+” pour ouvrir le menu “Create” .
-- Dans le menu “Create” , selectionner “Import”
+- Copier le dashboard ID. Dans notre cas, l'ID est 1860.
+- De retour sur *notre* grafana, sur la gauche, cliquer sur  “Dashboard” puis le bouton bleu enn haut à gauche "New" : dans cette list déroulante, sélectionner “Import”
 - Dans la section “Grafana.com Dashboard” , copier le dashboard ID (1860) dans le champ “Grafana.com Dashboard ID” .
-- Cliquer sur le bouton “Load”
+- Cliquer sur le bouton “Load” , sélectionner *notre* prometheus dans le champ (liste déroulante)
 
 Naviger dans la section des Dashboard.... 
 
+![graf-node](img/graf-node.png)
+
 ## Ajout d'une metrique custom dans NodeExporter
 
-Sur le serveur supervisé :
+Sur le serveur supervisé (clt) :
 
 ```
-mkdir /root/textfile
+mkdir /home/textfile
 ```
 
-Configurez nodeexporter pour prendre en compte ce répertoire :
+Configurez nodeexporter pour prendre en compte ce répertoire , modifiant la ligne suivante dans '/etc/systemd/system/node_exporter.service':
 ```
-./node_exporter --collector.textfile.directory=/home/textfile
+ExecStart=/opt/node_exporter/node_exporter --collector.textfile.directory=/home/textfile
+```
+
+Puis relançons NodeExporter :
+```
+systemctl daemon-reload
+systemctl restart node_exporter.service  
 ```
 
 Créeons (à la main) un fichier contenant notre metrique custom (dont la valeur vaut le nombre de secondes depuis l'epoch):
@@ -199,20 +220,31 @@ Créeons (à la main) un fichier contenant notre metrique custom (dont la valeur
 echo ma_metrique_custom $(date +%s) > /home/textfile/ma_metrique_custom.prom
 ```
 
-Naviguez sur la page NodeExporter : http://IP_srv_supervise:9100/metrics  et constatez que notre métrique est incluse dans la page !
+Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics  et constatez que notre métrique est incluse dans la page !
+```
+curl -s http://IP_clt:9100/metrics | grep "ma_metrique_custom"
+# HELP ma_metrique_custom Metric read from /home/textfile/ma_metrique_custom.prom
+# TYPE ma_metrique_custom untyped
+ma_metrique_custom 1.722946125e+09
+node_textfile_mtime_seconds{file="ma_metrique_custom.prom"} 1.722946125e+09
+```
 
 Cette métrique doit également être consutable sur Prometheus directement : http://IP_srv_prom:9090
+
+![prom-custom](img/prom-custom.png)
 
 Plus de détails [ici](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)
 Notez la mention de ```spunge``` afin d'écrire atomiquement le fichier ```textfile```.
 
 ## Instrumenter le Code pour Prometheus
 
+Sur clt, nous allons créer une application instrumentée :
+
 ```
-apt install python3-prometheus-client python3-flask
+apt install -y python3-prometheus-client python3-flask
 ```
 
-Puis copier le code suivant dans l'invite python3 :
+Puis copier le code suivant dans l'invite `python3` (ne pas oublier de faire 2 retours chariots à la fin) :
 
 ```
 from flask import Flask, request, render_template_string
@@ -264,7 +296,14 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-Visiter le site web sur TCP/8000 (les métriques Prometheus) et TCP/5000 (l'application)
+Visiter le site web http://IP_clt:8000  (les métriques Prometheus) 
+
+![app-instr](img/app-instr.png)
+
+
+et http://IP_clt:5000 (l'application)
+
+![app-inst-metr](img/app-instr-met.png)
 
 
 # Supervision avec Datadog
