@@ -314,29 +314,35 @@ Créez un compte (gratuit) sur [Datadog](http://datadog.com)
 
 Suivez la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) avec la création à la volée d'une clé API.
 
-Au bout de quelques minutes, votre serveur va aparaitre dans l'interface.
+![dd-agent](img/dd-agent.png)
+
+Au bout de quelques minutes, votre serveur va aparaitre dans le portail DataDog, menu à gauche "Infrastructure > Hosts"
+
+![dd-infra](img/dd-infra.png)
 
 Vous pouvez créer une alerte (monitor) sur cette [page](https://app.datadoghq.eu/monitors/create) en choisissant par exemple la metrique ```system.disk.free``` ou autre...)
 
 ## Metrique custom dans Datadog
 
-Supposons que nous souhaitions connaitre le nombre de ligne dans les tables d'une base de donnée.
+Supposons que nous souhaitions connaitre le nombre de lignes dans les tables d'une base de donnée.
 
 ### Installation d'une base de données sur le serveur supervisé
 
+Sur notre serveur 'clt' :
+
 ```
-apt install -y mariadb
+apt install -y mariadb-server unzip
 ```
 
 Injection d'une base de données nommée `classicmodels`
 
 ```
 cd /home/
-curl https://www.mysqltutorial.org/wp-content/uploads/2023/10/mysqlsampledatabase.zip
-gunzip mysqlsampledatabase.zip
+wget https://www.mysqltutorial.org/wp-content/uploads/2023/10/mysqlsampledatabase.zip
+unzip mysqlsampledatabase.zip
 ```
 
-Puis
+Puis (mot de passe vide)
 ```
 mysql -u root -p
 ```
@@ -346,7 +352,7 @@ Enter password: ********
 mysql>
 ```
 
-Enfin, injectons la DB
+Enfin, importons le fichier de base de données
 ```
 > source mysqlsampledatabase.sql;
 > show databases;
@@ -363,9 +369,9 @@ Enfin, injectons la DB
 
 ### Configuration de l'agent Datadog
 
-Sur le serveur supervisé :
+Sur le serveur supervisé (i.e 'clt'):
 ```
-cd /etc/datadog/conf.d/mysql
+cd /etc/datadog/conf.d/mysql.d
 ```
 
 Renommer le fichier `conf.yaml.sample` en `conf.yaml` et injecter (en faisant attention aux indentations) quelque chose comme ceci:
@@ -376,7 +382,7 @@ instances:
   - host: localhost
     dbm: true
     username: root
-    password: xxx
+    password: ""
     port: 3306
 
     custom_queries:
@@ -390,16 +396,19 @@ instances:
            type: gauge
 ```
 
-Relancer datadog et vérifier que la plugin SQL est sans erreur :
+Relancer l'agent datadog et vérifier que la plugin SQL est sans erreur :
 
 ```
 systemctl restart datadog-agent
-dd-agent status
+```
+Lancer plusieur l'outil de diag jusqu'à ce que le paragraphe MySQL soit ok :
+```
+datadog-agent status
 ```
 
 Ensuite aller dans Datadog :
-- activer l'intégration
-- explorer les métriques
-- dans un dasboard ajouter une table montrant le nombre de customers et de employees
+- activer l'intégration MySQL
+- explorer les métriques (menu "Metric Explorer" à gauche)
+- dans un Dasboard, ajouter une table montrant le nombre de customers et d'employes
 
 ##TO DO screenshot
