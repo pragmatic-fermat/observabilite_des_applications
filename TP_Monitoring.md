@@ -352,7 +352,7 @@ Enter password: ********
 mysql>
 ```
 
-Enfin, importons le fichier de base de données
+Enfin, importons le fichier de base de données et configurons le mdp root mysql
 ```
 > source mysqlsampledatabase.sql;
 > show databases;
@@ -365,6 +365,9 @@ Enfin, importons le fichier de base de données
 | performance_schema |
 | sys                |
 +--------------------+
+> ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyN3wP4ssw0rd';
+> flush privileges;
+> exit;
 ```
 
 ### Configuration de l'agent Datadog
@@ -382,7 +385,7 @@ instances:
   - host: localhost
     dbm: true
     username: root
-    password: ""
+    password: MyN3wP4ssw0rd
     port: 3306
 
     custom_queries:
@@ -394,6 +397,12 @@ instances:
         columns:
          - name: classicmodels.employees
            type: gauge
+      - query: SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'classicmodels'
+        columns:
+         - name: classicmodels.table_name
+           type: tag
+         - name: classicmodels.table_rows
+           type: gauge
 ```
 
 Relancer l'agent datadog et vérifier que la plugin SQL est sans erreur :
@@ -403,12 +412,44 @@ systemctl restart datadog-agent
 ```
 Lancer plusieur l'outil de diag jusqu'à ce que le paragraphe MySQL soit ok :
 ```
-datadog-agent status
+# datadog-agent status | grep -A10 -i mysql 
+    mysql (12.5.1)
+    --------------
+      Instance ID: mysql:4bf5f516622ead61 [OK]
+      Configuration Source: file:/etc/datadog-agent/conf.d/mysql.d/conf.yaml
+      Total Runs: 1
+      Metric Samples: Last Run: 69, Total: 69
+      Events: Last Run: 0, Total: 0
+      Database Monitoring Metadata Samples: Last Run: 1, Total: 1
+      Service Checks: Last Run: 1, Total: 1
+      Average Execution Time : 533ms
+      Last Execution Date : 2024-08-07 06:09:51 UTC (1723010991000)
+      Last Successful Execution Date : 2024-08-07 06:09:51 UTC (1723010991000)
+
+
 ```
 
 Ensuite aller dans Datadog :
 - activer l'intégration MySQL
-- explorer les métriques (menu "Metric Explorer" à gauche)
-- dans un Dasboard, ajouter une table montrant le nombre de customers et d'employes
 
-##TO DO screenshot
+![dd-mysql](img/dd-mysql.png)
+
+- explorer les métriques (menu "Metric Explorer" à gauche)
+
+![dd-mysql-metr](img/dd-mysql-metr.png)
+
+- retrouver nos 2 métriques custom :
+
+![dd-class](img/dd-class.png)
+
+- dans un Dasboard, ajouter 2 graphes montrant le nombre de customers et d'employes
+
+![dd-graph1](img/dd-graph1.png)
+
+- puis construisez un TopList qui montre le nombre de lignes par table dans notre database 'classimodels' :
+
+![dd-graph2](img/dd-graph2.png)
+
+Soit
+
+![dd-graph3](img/dd-graph3.png)
