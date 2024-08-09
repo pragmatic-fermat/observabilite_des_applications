@@ -39,6 +39,9 @@ npm install
 
 ## init db
 
+Dans /root/messenger/app :
+npm run refresh-db
+Dans /root/notifier/app :
 npm run refresh-db
 
 Notre appli écoute tcp/5000, comme un des agents de datadog.
@@ -234,3 +237,43 @@ node --import ./tracing.mjs index.mjs
 On obtient alors ceci dans Jaeger
 
 ![jaeger3](/img/tutorial-OTel-tracing-microservices_ch2-traces.png)
+
+Faisons de même pour le notifier 
+
+Dans /root/notifier/app :
+
+npm install @opentelemetry/auto-instrumentations-node@0.36.4 \
+  @opentelemetry/exporter-trace-otlp-http@0.36.0 \
+  @opentelemetry/resources@1.10.0 \
+  @opentelemetry/sdk-node@0.36.0 \
+  @opentelemetry/semantic-conventions@1.10.0
+
+Créeons un fichier tracing.mjs :
+
+import opentelemetry from "@opentelemetry/sdk-node";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+
+const resource = new Resource({
+  [SemanticResourceAttributes.SERVICE_NAME]: "notifier",
+});
+
+const sdk = new opentelemetry.NodeSDK({
+  resource,
+  traceExporter: new OTLPTraceExporter({ headers: {} }),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
+
+Puis relançons :
+
+node --import ./tracing.mjs index.mjs
+
+On constate dans Jaeger que les traces remontent bien
+
+![jaeger4](/img/tutorial-OTel-tracing-microservices_ch2-notifier.png)
+
+## Instrumentons Nginx
