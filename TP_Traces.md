@@ -1,4 +1,4 @@
-#Objectifs
+# Objectifs
 
 - Ajout d'Open Telemetry dans le code d’une application containerisée
 - Analyse dans un backend Jaeger ou Grafana Tempo
@@ -6,88 +6,111 @@
 
 
 Sur clt
-
+```
 mkdir ~/microservices-marchcd ~/microservices-march
 git clone https://github.com/microservices-march/messenger --branch mm23-metrics-start
 git clone https://github.com/microservices-march/notifier --branch mm23-metrics-start
 git clone https://github.com/microservices-march/platform --branch mm23-metrics-start
+```
 
-
+```
 cd platform
 docker compose up -d --build
+```
 
-
-## installons Node en v19
+## Installons asdf (installateur Node)
+```
 cd /root
 git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-
+```
 
 Ajouter en fin de /root/.bashrc
+```
 . "$HOME/.asdf/asdf.sh"
 . "$HOME/.asdf/completions/asdf.bash"
+```
 
 Relancez le shell :
+```
 bash
+```
 
-## install plugin
+## Install Node en v19
 
+```
 cd root/messenger/app
 apt-get install -y dirmngr gpg curl gawk
 asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 asdf install
 npm install
+```
 
-## init db
+## Init db
 
-Dans /root/messenger/app :
+Dans `/root/messenger/app` :
+```
 npm run refresh-db
-Dans /root/notifier/app :
+```
+Dans `/root/notifier/app` :
+```
 npm run refresh-db
+```
 
-Notre appli écoute tcp/5000, comme un des agents de datadog.
-Modifions ce dernier
+Notre appli écoute sur tcp/5000, comme un des agents de Datadog : conflit !
+Modifions ce dernier :
 
-Dans  /etc/datadog-agent/datadog.yaml , modifier la variable expvar de 5000 à 5999 (par exe) et relancer datadog
+Dans  `/etc/datadog-agent/datadog.yaml` , modifier la variable `expvar` de 5000 à 5999 (par exe) et relancer datadog
+```
 systemctl restart datadog-agent
+```
 
-## Notififer & Messanger
+## Notifier & Messenger
 
+```
 cd /root/notifier/app
 npm install
+```
 
 Dans ** une première fenetre ** lancer le notifier (qui écoute sur tcp/5000) :
-
+```
 cd /root/notifier/app
 node index.mjs 
+```
 
-Dans une seconde fenetre, le messenger  (qui écoute sur tcp/5000) 
+Dans une seconde fenetre, lancer le messenger  (qui écoute sur tcp/5000) 
+```
 cd /root/messenger/app
 node index.mjs 
-
+```
 
 Dans une troisieme fenetre, lancer une requete de message
 
 créeons une conversation :
-curl -X POST     -H "Content-Type: application/json"     -d '{"participant_ids": [1, 2]}'     'http://localhost:4000/conversations'
+```
+curl -X POST  \
+    -H "Content-Type: application/json" \
+    -d '{"participant_ids": [1, 2]}'  \
+   'http://localhost:4000/conversations'
+```
 
-envoyons un message
-
+envoyons ensuite un message
+```
 curl -X POST \
     -H "User-Id: 1" \
     -H "Content-Type: application/json" \
     -d '{"content": "This is the first message"}' \
     'http://localhost:4000/conversations/1/messages'
-
+```
 
 Il apparait dans le notifier
-(qui plante lors de l'accès à PG NODE_ENV DEV)
 
 # UI
 
+```
 cd /root/
 git clone https://github.com/microservices-march/messenger-ui
 npm install
-
+```
 
 PS : Ce Lab est librement inspiré de https://www.f5.com/company/blog/nginx/nginx-tutorial-opentelemetry-tracing-understand-microservices
 
@@ -100,13 +123,14 @@ Commençons par auto-instrumenter:
 Interrompez (Ctrl-C) le service node messenger
 
 Puis 
-
+```
 cd /root/messenger/app
 npm install @opentelemetry/sdk-node@0.36.0 \
             @opentelemetry/auto-instrumentations-node@0.36.4
-
+```
 
 Créer un fichier tracing.mjs qui contient :
+```
 //1
 import opentelemetry from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
@@ -119,13 +143,14 @@ const sdk = new opentelemetry.NodeSDK({
 
 //3
 sdk.start();
+```
 
-Relanceons le service instrumenté 
-
+Relancons le service instrumenté 
+```
 node --import ./tracing.mjs index.mjs
-
+```
 Des spans apparaissent à la console , notamment lors des POST :
-
+```
 {
   traceId: 'e2ffb8e2ab000f2aa33ca5d58d7f9d0a',
   parentId: undefined,
@@ -158,18 +183,21 @@ Des spans apparaissent à la console , notamment lors des POST :
   events: [],
   links: []
 }
-
+```
 
 ## Jaeger
 
-http://IP_clt:16686/search
+Visiter  http://IP_clt:16686/search
 
 Tout est vide. : rien n'est envoyé.
 
 Toujours au niveau de /root/messenger/app :
+```
 npm install @opentelemetry/exporter-trace-otlp-http@0.36.0
+```
 
 Modifier ainsi tracing.mjs pour incllure la libraire et l'export :
+```
 //1
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import opentelemetry from "@opentelemetry/sdk-node";
@@ -183,11 +211,14 @@ const sdk = new opentelemetry.NodeSDK({
 
 //3
 sdk.start();
+```
 
-NB : cela suppose que le collecteur de traces se trouve pa r défaut sur : http://localhost:4318/v1/traces.
+NB : cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces.
 
 Relancer :
+```
 node --import ./tracing.mjs index.mjs
+```
 
 Dans Jaeger vous devoir voir ceci 
 
@@ -199,13 +230,15 @@ Lancer une requete vers http://localhost:4000/health et retrouvez-là :
 
 Pour donner un meilleur nom à notre application dans le tracing :
 
-Interromper messenher (Ctr-c)
+Interromper messenger (Ctr-c)
 Puis
+```
 npm install @opentelemetry/semantic-conventions@1.10.0 \
             @opentelemetry/resources@1.10.0
+```
 
 Modifier tracing.js ainsi :
-
+```
 //1
 //new
 import { Resource } from "@opentelemetry/resources";import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
@@ -229,10 +262,12 @@ const sdk = new opentelemetry.NodeSDK({
 
 //3
 sdk.start();
+```
 
 Puis relancer
-
+```
 node --import ./tracing.mjs index.mjs
+```
 
 On obtient alors ceci dans Jaeger
 
@@ -241,15 +276,16 @@ On obtient alors ceci dans Jaeger
 Faisons de même pour le notifier 
 
 Dans /root/notifier/app :
-
+```
 npm install @opentelemetry/auto-instrumentations-node@0.36.4 \
   @opentelemetry/exporter-trace-otlp-http@0.36.0 \
   @opentelemetry/resources@1.10.0 \
   @opentelemetry/sdk-node@0.36.0 \
   @opentelemetry/semantic-conventions@1.10.0
+```
 
 Créeons un fichier tracing.mjs :
-
+```
 import opentelemetry from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -267,13 +303,145 @@ const sdk = new opentelemetry.NodeSDK({
 });
 
 sdk.start();
+```
 
 Puis relançons :
-
+```
 node --import ./tracing.mjs index.mjs
-
+```
 On constate dans Jaeger que les traces remontent bien
 
 ![jaeger4](/img/tutorial-OTel-tracing-microservices_ch2-notifier.png)
 
-## Instrumentons Nginx
+## Mise en place d'un Reverse Proxy Nginx
+
+Nous allons reverse-proxyfier nos applis avec nginx
+
+Il faut donc ajouter le service suivant dans notre fichier `~/platform/docker-compose.yaml` :
+```
+  ingress:
+    build: ./ingress
+    container_name: ingress
+    environment:
+    ## normalment messenger
+      - NGINX_UPSTREAM=<IP_PUB_clt>
+    # The ingress service is the only service that has ports exposed out.
+    ports:
+      - 8080:80
+    networks:
+      - mm_2023
+```
+
+Ce service fait référence à une image Docker locale : on creera le fichier `~/platform/ingress/Dockerfile` avec le contenu suivant
+```
+FROM nginx:1.23
+
+ENV NGINX_UPSTREAM=localhost
+
+COPY default.conf.template /etc/nginx/templates/default.conf.template
+```
+et le fichier `~/platform/ingress/default.conf.template` avec le contenu suivant
+```
+upstream messenger_entrypoint {
+  server ${NGINX_UPSTREAM}:4000;
+}
+
+server {
+  listen 8080;
+
+  location / {
+    proxy_pass http://messenger_entrypoint;
+  }
+
+  location /health {
+    access_log off;
+    return 200 "OK\n";
+  }
+
+  error_page 500 502 503 504 /50x.html;
+  location = /50x.html {
+    root /usr/share/nginx/html;
+  }
+}
+```
+
+Lançons notre nouveau container :
+```
+docker compose create
+docker compose start ingress
+ufw allow 8080/tcp
+ufw allow 4000/tcp
+```
+
+On rejoue les mêmes tests, mais cette fois-ci via Nginx :
+
+créeons une conversation :
+```
+curl -X POST  \
+    -H "Content-Type: application/json" \
+    -d '{"participant_ids": [1, 2]}'  \
+   'http://localhost:8080/conversations'
+```
+
+envoyons ensuite un message
+```
+curl -X POST \
+    -H "User-Id: 1" \
+    -H "Content-Type: application/json" \
+    -d '{"content": "This is the first message"}' \
+    'http://localhost:8080/conversations/1/messages'
+```
+
+## Instrumenter Nginx
+
+Dans Jaeger, nous voyons toujours les traces, mais aucune mention de Nginx.
+Activons OTel dans Nginx !
+
+Retournons dans `~/platform/ingress`, et changeons ainsi le `Dockerfile` :
+
+```
+FROM --platform=amd64 nginx:1.23.1
+# Replace the nginx.conf file with our own
+ENV NGINX_UPSTREAM=localhost
+COPY default.conf.template /etc/nginx/templates/default.conf.template
+
+# Define the version of the NGINX OTel module
+ARG OPENTELEMETRY_CPP_VERSION=1.0.3
+
+# Define the search path for shared libraries used when compiling and running NGINX
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opentelemetry-webserver-sdk/sdk_lib/lib
+
+# 1. Download the latest version of Consul template and the OTel C++ web server module, otel-webserver-module
+ADD https://github.com/open-telemetry/opentelemetry-cpp-contrib/releases/download/webserver%2Fv${OPENTELEMETRY_CPP_VERSION}/opentelemetry-webserver-sdk-x64-linux.tgz /tmp
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends dumb-init unzip \
+# 2. Extract the module files
+  && tar xvfz /tmp/opentelemetry-webserver-sdk-x64-linux.tgz -C /opt \
+  && rm -rf /tmp/opentelemetry-webserver-sdk-x64-linux.tgz \
+# 3. Install and add the 'load_module' directive at the top of the main NGINX configuration file
+  && /opt/opentelemetry-webserver-sdk/install.sh \
+  && echo "load_module /opt/opentelemetry-webserver-sdk/WebServerModule/Nginx/1.23.1/ngx_http_opentelemetry_module.so;\n$(cat /etc/nginx/nginx.conf)" > /etc/nginx/nginx.conf
+
+# 4. Copy in the configuration file for the NGINX OTel module
+COPY opentelemetry_module.conf /etc/nginx/conf.d/opentelemetry_module.conf
+
+EXPOSE 8080
+
+STOPSIGNAL SIGQUIT
+```
+Créeons le fichier `~/platform/ingress/opentelemetry_module.conf` :
+```
+NginxModuleEnabled ON;
+NginxModuleOtelSpanExporter otlp;
+NginxModuleOtelExporterEndpoint jaeger:4317;
+NginxModuleServiceName messenger-lb;
+NginxModuleServiceNamespace MicroservicesMarchDemoArchitecture;
+NginxModuleServiceInstanceId DemoInstanceId;
+NginxModuleResolveBackends ON;
+NginxModuleTraceAsError ON;
+```
+
+Refaire des requetes et observer que le service messenger-lb apparait :
+
+![jaeger-nginx](/img/jaeger-nginx.png)
