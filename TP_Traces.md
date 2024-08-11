@@ -1,11 +1,22 @@
 # Objectifs
 
-- Ajout d'Open Telemetry dans le code d’une application containerisée
-- Analyse dans un backend Jaeger ou Grafana Tempo
+- [Installation et déploiement d'une application complexe](#vue-globale)
+- [Ajout d'Open Telemetry dans le code](#auto-instrumentation)
+- [Export et Analyse dans un backend Jaeger](#jaeger)
+- [Instrumentation de Nginx](#instrumenter-nginx)
+- [Extra: Tracing PHP avec Datadog](#extra-tracing-avec-datadog)
 
+## Vue globale
 
+Voici l'application à déployer, sans télémétrie pour démarrer :
 
-Sur clt
+![topo](/img/tutorial-OTel-tracing-microservices_flow.png)
+
+PS : Ce Lab est librement inspiré de cet [article Nginx](https://www.f5.com/company/blog/nginx/nginx-tutorial-opentelemetry-tracing-understand-microservices)
+
+## Recuperation des sources
+
+Sur la VM `clt` :
 ```
 mkdir ~/microservices-marchcd ~/microservices-march
 git clone https://github.com/microservices-march/messenger --branch mm23-metrics-start
@@ -71,21 +82,21 @@ cd /root/notifier/app
 npm install
 ```
 
-Dans ** une première fenetre ** lancer le notifier (qui écoute sur tcp/5000) :
+Dans une **première** fenêtre lancer le notifier (qui écoute sur tcp/5000) :
 ```
 cd /root/notifier/app
 node index.mjs 
 ```
 
-Dans une seconde fenetre, lancer le messenger  (qui écoute sur tcp/5000) 
+Dans une **seconde** fenêtre, lancer le messenger  (qui écoute sur tcp/5000) 
 ```
 cd /root/messenger/app
 node index.mjs 
 ```
 
-Dans une troisieme fenetre, lancer une requete de message
+Dans une **troisieme** fenetre, lancer une requete de message
 
-créeons une conversation :
+Créeons une conversation :
 ```
 curl -X POST  \
     -H "Content-Type: application/json" \
@@ -102,21 +113,12 @@ curl -X POST \
     'http://localhost:4000/conversations/1/messages'
 ```
 
-Il apparait dans le notifier
-
-# UI
-
-```
-cd /root/
-git clone https://github.com/microservices-march/messenger-ui
-npm install
-```
-
-PS : Ce Lab est librement inspiré de https://www.f5.com/company/blog/nginx/nginx-tutorial-opentelemetry-tracing-understand-microservices
+Le message apparait dans la feneêtre du notifier
 
 ## Auto-instrumentation
 
-
+Voici notre objectif :
+![flow](/img/tutorial-OTel-tracing-microservices_topology.png)
 
 Commençons par auto-instrumenter:
 
@@ -129,7 +131,7 @@ npm install @opentelemetry/sdk-node@0.36.0 \
             @opentelemetry/auto-instrumentations-node@0.36.4
 ```
 
-Créer un fichier tracing.mjs qui contient :
+Créer un fichier `tracing.mjs` qui contient :
 ```
 //1
 import opentelemetry from "@opentelemetry/sdk-node";
@@ -191,12 +193,12 @@ Visiter  http://IP_clt:16686/search
 
 Tout est vide. : rien n'est envoyé.
 
-Toujours au niveau de /root/messenger/app :
+Toujours au niveau de `/root/messenger/app` :
 ```
 npm install @opentelemetry/exporter-trace-otlp-http@0.36.0
 ```
 
-Modifier ainsi tracing.mjs pour incllure la libraire et l'export :
+Modifier ainsi `tracing.mjs` pour incllure la libraire et l'export :
 ```
 //1
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -213,7 +215,7 @@ const sdk = new opentelemetry.NodeSDK({
 sdk.start();
 ```
 
-NB : cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces.
+NB : cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces
 
 Relancer :
 ```
@@ -230,7 +232,7 @@ Lancer une requete vers http://localhost:4000/health et retrouvez-là :
 
 Pour donner un meilleur nom à notre application dans le tracing :
 
-Interromper messenger (Ctr-c)
+Interrompez messenger (Ctr-c)
 Puis
 ```
 npm install @opentelemetry/semantic-conventions@1.10.0 \
@@ -445,3 +447,90 @@ NginxModuleTraceAsError ON;
 Refaire des requetes et observer que le service messenger-lb apparait :
 
 ![jaeger-nginx](/img/jaeger-nginx.png)
+
+
+# Extra : Tracing avec Datadog
+
+A vous de jouer pour activer le tracing avec Datadog de l'application [Librespeed](https://github.com/librespeed/speedtest/blob/master/doc_docker.md) (ou autre !)
+
+Quelques pistes pour réaliser cela sur la VM `clt` :
+
+- créer un `docker-compose.yaml` de ce type pour visiter l'application sur tcp/81 et envoyer la telemetrie vers l'agant DD qui tourne déjà sur le host
+```
+services:
+  speedtest:
+    container_name: speedtest
+      ##image: ghcr.io/librespeed/speedtest:latest
+    build: .
+    restart: always
+    environment:
+      MODE: standalone
+      #TITLE: "LibreSpeed"
+      #TELEMETRY: "false"
+      #ENABLE_ID_OBFUSCATION: "false"
+      #REDACT_IP_ADDRESSES: "false"
+      #PASSWORD:
+      #EMAIL:
+      #DISABLE_IPINFO: "false"
+      #IPINFO_APIKEY: "your api key"
+      #DISTANCE: "km"
+      #WEBPORT: 80
+      DD_SERVICE: "librespeed"
+      DD_VERSION: "1.0"
+      DD_ENV: "training"
+      DD_AGENT_HOST: IP_PUB_CLT
+      DD_TRACE_AGENT_PORT: 8126
+    ports:
+      - "81:80" # webport mapping (host:container)
+```
+
+- creer un `Dockerfile` de ce type pour auto-instrumenter l'application
+```
+FROM ghcr.io/librespeed/speedtest:latest
+
+ADD https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php /tmp
+RUN php /tmp/datadog-setup.php --php-bin=all --enable-profiling
+```
+
+
+- modifier le `/etc/datadog/datadog.yaml` de cette façon (attention très pointilleux sur les indentations):
+
+```
+# grep -v "#" /etc/datadog-agent/datadog.yaml | egrep "[a-z]"
+api_key: ZZZZZZ56687417ea7
+site: datadoghq.eu
+apm_config:
+  enabled: true
+  apm_non_local_traffic: true
+```
+puis
+```
+systemctl restart datadog-agent
+```
+
+- vérifier avec `dd-agent` après avoir généré du trafic sur le site web http://IP_clt:81
+```
+# datadog-agent status | grep -i trace -A10
+    https://trace.agent.datadoghq.eu
+
+  Receiver (previous minute)
+  ==========================
+    From php 8.3.10 (apache2handler), client 1.2.0
+      Traces received: 19 (12,071 bytes)
+      Spans received: 19
+
+
+    Priority sampling rate for 'service:librespeed,env:training': 100.0%
+
+  Writer (previous minute)
+  ========================
+    Traces: 0 payloads, 0 traces, 0 events, 0 bytes
+    Stats: 0 payloads, 0 stats buckets, 0 bytes
+```
+
+
+- visualiser sur le portail datadog :
+
+![dd_trace1](/img/dd-trace1.png)
+
+![dd_trace2](/img/dd-trace2.png)
