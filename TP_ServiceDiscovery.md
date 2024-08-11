@@ -58,7 +58,7 @@ Inscrivons le service :
 systemctl daemon-reload
 ```
 
-Creeons la clé d'authentification (key_srv)
+Creeons une clé d'authentification (key_srv)
 ```
 consul keygen
 ```
@@ -123,7 +123,7 @@ cp build/dataplaneapi /usr/local/bin/
 chmod +x /usr/local/bin/dataplaneapi
 ```
 
-Creeons le fichier /etc/haproxy/dataplaneapi.yaml ** (attention à IP_srv) ** 
+Creeons le fichier `/etc/haproxy/dataplaneapi.yaml` ** (attention à IP_srv) ** 
 
 ```
 config_version: 2
@@ -137,7 +137,7 @@ dataplaneapi:
     insecure: true
 ```
 
-Ajouter à la fin du fichier /etc/haproxy/haproxy.cfg ** ( attention à l'indentation/tabulation) **:
+Ajouter à la fin du fichier `/etc/haproxy/haproxy.cfg` ** ( attention à l'indentation/tabulation) **:
 ```
 [..]
 program api
@@ -151,23 +151,6 @@ uwf allow 5555/tcp
 systemctl restart haproxy
 ```
 
-## Activer Service Discovery dans HA Proxy
-
-Toujours sur IP_srv, lancer :
-```
-curl -u dataplaneapi:mypassword \
-       -H 'Content-Type: application/json' \
-       -d '{
-             "address": "<IP_srv>",
-             "port": 8500,
-             "enabled": true,
-             "retry_timeout": 10
-           }' http://127.0.0.1:5555/v2/service_discovery/consul
-```
-Le retour ressemble à ceci :
-```
-{"address":"IP_srv","enabled":true,"id":"7c557cf1-e58a-47a5-a94e-ed9bc8568d96","port":8500,"retry_timeout":10,"server_slots_base":10,"server_slots_growth_increment":10,"server_slots_growth_type":"linear","service-blacklist":null,"service-whitelist":null,"service_allowlist":null,"service_denylist":null}
-```
 
 
 ### Installation Consul Client
@@ -188,9 +171,9 @@ Sur le Client clt, réaliser la même installation de consul avec le fichier /et
   "encrypt": "tAOrr1x52gC4K1SPKixkbFk1EkbbRN1mBjSA8UJnv2g="
 }
 ```
-PS : on pourrait utiliser '"bind_addr": "{{ GetInterfaceIP \"eth0\" }}"' mais les adresses IP multiples ne sont pas supportées...
+PS : on pourrait utiliser ` "bind_addr": "{{ GetInterfaceIP \"eth0\" }}" ` mais les adresses IP multiples ne sont pas supportées...
 
-et le nouveau fichier /etc/consul.d/web.json :
+et le nouveau fichier `/etc/consul.d/web.json` :
 ```
 {
   "service": {
@@ -204,13 +187,117 @@ Lancons le service consul
 systemctl reload consul.service
 ```
 
-Consultez les logs (/var/log/syslog) et l'interface web
-Si le firewll pose problème vous pouvez lancer sur le 'srv' : 'ufw allow from IP_clt' et vice-versa
+Consultez les logs (`/var/log/syslog`) et l'interface web
+Si le firewall pose problème vous pouvez lancer sur le `srv` : `ufw allow from IP_clt` et vice-versa
 
 On obtient enfin l'affichage du noeud
 
 ![consul1](/img/consul1.png)
 
-et le service 'web'
+et le service `web`
 
 ![consul2](/img/consul2.png)
+
+## Activer Service Discovery dans HA Proxy
+
+Lancer :
+```
+curl -u dataplaneapi:mypassword \
+       -H 'Content-Type: application/json' \
+       -d '{
+             "address": "<IP_srv>",
+             "port": 8500,
+             "enabled": true,
+             "retry_timeout": 10
+           }' http://<IP_srv>:5555/v2/service_discovery/consul
+```
+Le retour ressemble à ceci :
+```
+{"address":"IP_srv","enabled":true,"id":"fe370187-bc17-45e0-a7e9-d66912632b40","port":8500,"retry_timeout":10,"server_slots_base":10,"server_slots_growth_increment":10,"server_slots_growth_type":"linear","service-blacklist":null,"service-whitelist":null,"service_allowlist":null,"service_denylist":null}
+root@soea-01:~# cat /etc/haproxy/haproxy.cfg
+```
+
+Et maintenant la fin du fichier '/etc/haproxy/haproxy.cfg' a été complétée :
+```
+[..]
+backend consul-backend-IP_clt-8500-web 
+  server SRV_wtPx5 IP_clt:80 check weight 128
+  server SRV_ImcfZ 127.0.0.1:80 disabled weight 128
+  server SRV_SW9Sp 127.0.0.1:80 disabled weight 128
+  server SRV_toi43 127.0.0.1:80 disabled weight 128
+  server SRV_ZuhLt 127.0.0.1:80 disabled weight 128
+  server SRV_qUMIc 127.0.0.1:80 disabled weight 128
+  server SRV_CMiw3 127.0.0.1:80 disabled weight 128
+  server SRV_hlTYs 127.0.0.1:80 disabled weight 128
+  server SRV_l1MxH 127.0.0.1:80 disabled weight 128
+  server SRV_QIzuA 127.0.0.1:80 disabled weight 128
+  ```
+
+Lançons notre service web sur clt :
+```
+docker run -d -p 80:9898 stefanprodan/podinfo
+ufw allow 80/tcp
+```
+
+Coté srv, finalisons la conf de haproxy en ajoutant qq chose de ce genre :
+```
+[..]
+frontend myfrontend 
+  bind :80
+  default_backend consul-backend-IP_clt-8500-web
+```
+
+suivi de 
+```
+systemctl reload haproxy.service
+ufw allow 80/tcp
+```
+
+## Scaling dynamique
+
+En production, nous ajouterions des VMs.
+On peut le faire, mais par manque de temps, nous allons juste ajouter un autre container sur le serveur srv :
+
+```
+docker run -d -p 9898:9898 stefanprodan/podinfo
+```
+
+Et on ajoute le fichier /etc/consul.d/web9898.json sur srv toujours :
+```
+{
+  "service": {
+    "name": "web",
+    "port": 80
+  }
+}
+```
+
+suivi de :
+```
+consul services register /etc/consul.d/web9898.json
+```
+
+Vérifier que le site web est bien load-balancé
+
+## Extra HA Proxy Stats
+
+Ajouter ceci au /etc/haproxy/haproxy.cfg :
+```
+frontend stats
+    mode http
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+    stats admin if LOCALHOST
+```
+
+suivi de
+```
+systemctl reload haproxy.service
+ufw allow 8404/tcp
+```
+
+Visiter http://IP_srv:8404/stats
+
+![stats](/img/stats.png)
