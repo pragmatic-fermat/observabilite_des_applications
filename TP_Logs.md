@@ -112,15 +112,11 @@ Repartons à vide :
 helm delete grafana-k8s-monitoring
 ```
 
-Puis
-```
-helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
-```
+Dans l'interface Grafana, créer un nouveau conecteur 
+![loki](/img/loki0.png)
+![loki](/img/loki1.png)
 
-Créer un fichier ```otel-values.yaml``` basé sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure ci-dessous initiée dans Grafana_Cloud :
-
-
-![lok0](/img/loki0.png)
+En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contientdra notamment la configuration du collecteur opentelemetry embarquée dans l'application de demo.
 
 Cela pourrait ressembler à cela :
 
@@ -231,13 +227,21 @@ Jaeger UI http://localhost:8080/jaeger/ui/
 ```
 Identifier l'IP publique du LoadBalancer par `kubectl get svc` et visiter cette IP sur le port 8080 pour générer des logs/traces.
 
+Dans le portail Grafana, renseigner le champ `service_name` et `service_namespace` (que vous pouvez retrouver dans la documentation du Helm Chart)
+
+![loki](/img/loki2.png)
+
+Normalement le test devrait être OK dans le portail Grafana :
+![loki](/img/loki2.png)
+
 Dans le portail Grafana, on retrouve les logs : si on identifie un `trace_id`, on peut le chercher dans tempo :
 
-![loki](/img/loki1.png)
-![loki](/img/loki2.png)
 ![loki](/img/loki3.png)
+
 ![loki](/img/loki4.png)
+
 ![loki](/img/loki5.png)
+
 ![loki](/img/loki6.png)
 
   
