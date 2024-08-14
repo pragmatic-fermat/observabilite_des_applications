@@ -113,7 +113,9 @@ helm delete grafana-k8s-monitoring
 ```
 
 Dans l'interface Grafana, créer un nouveau conecteur 
+
 ![loki](/img/loki0.png)
+
 ![loki](/img/loki1.png)
 
 En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contientdra notamment la configuration du collecteur opentelemetry embarquée dans l'application de demo.
@@ -232,18 +234,23 @@ Dans le portail Grafana, renseigner le champ `service_name` et `service_namespac
 ![loki](/img/loki2.png)
 
 Normalement le test devrait être OK dans le portail Grafana :
+
 ![loki](/img/loki2.png)
 
 Dans le portail Grafana, on retrouve les logs : 
+
 ![loki](/img/loki5.png)
 
 Identifier un `trace_id`
+
 ![loki](/img/loki6.png)
 
 Cherchez ce `trace_id` chercher dans tempo :
+
 ![loki](/img/loki4.png)
 
 Il est alors possible d'avoir cote à coté **corrélés** logs et traces
+
 ![loki](/img/loki3.png)
 
 
