@@ -101,3 +101,143 @@ grafana-k8s-monitoring-alloy-logs                 2         2         2       2 
 grafana-k8s-monitoring-prometheus-node-exporter   2         2         2       2            2           kubernetes.io/os=linux   67m
 kepler                                            2         2         2       2            2           kubernetes.io/os=linux   67m
 ```
+
+ 
+
+## Deploiement de l'apli demo-otel
+
+  
+Repartons à vide :
+```
+helm delete grafana-k8s-monitoring
+```
+
+Puis
+```
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+```
+
+Créer un fichier ```otel-values.yaml``` basé sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure ci-dessous initiée dans Grafana_Cloud :
+
+
+![lok0](/img/loki0.png)
+
+Cela pourrait ressembler à cela :
+
+```
+components:
+  frontendProxy:
+    service:
+      type: LoadBalancer
+  loadgenerator:
+    enabled: false
+opensearch:
+    enabled: false
+grafana:
+    enabled: false
+prometheus:
+  enabled: false
+jaeger:
+  enabled: false
+
+opentelemetry-collector:
+  config:
+
+    extensions:
+      basicauth/grafana_cloud:
+        client_auth:
+          username: "1009912"
+          password: "glc_eyJxxx"
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+          http:
+      hostmetrics:
+        scrapers:
+          load:
+          memory:
+
+    exporters:
+      otlphttp/grafana_cloud:
+        endpoint: "https://otlp-gateway-prod-eu-west-2.grafana.net/otlp"
+        auth:
+          authenticator: basicauth/grafana_cloud
+
+    processors:
+      batch:
+        timeout: 5s
+
+    service:
+      extensions: [basicauth/grafana_cloud, health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlphttp/grafana_cloud, debug]
+        metrics:
+          receivers: [otlp, hostmetrics]
+          processors: [batch]
+          exporters: [otlphttp/grafana_cloud, debug]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlphttp/grafana_cloud, debug]
+```
+
+Puis
+
+```
+helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml
+```
+
+On obtient ceci :
+
+```
+NAME: my-otel-demo
+LAST DEPLOYED: Tue Aug 13 19:59:36 2024
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+
+=======================================================================================
+
+  
+  
+
+██████╗ ████████╗███████╗██╗ ██████╗ ███████╗███╗ ███╗ ██████╗
+██╔═══██╗╚══██╔══╝██╔════╝██║ ██╔══██╗██╔════╝████╗ ████║██╔═══██╗
+██║ ██║ ██║ █████╗ ██║ ██║ ██║█████╗ ██╔████╔██║██║ ██║
+██║ ██║ ██║ ██╔══╝ ██║ ██║ ██║██╔══╝ ██║╚██╔╝██║██║ ██║
+╚██████╔╝ ██║ ███████╗███████╗ ██████╔╝███████╗██║ ╚═╝ ██║╚██████╔╝
+╚═════╝ ╚═╝ ╚══════╝╚══════╝ ╚═════╝ ╚══════╝╚═╝ ╚═╝ ╚═════╝
+
+
+
+- All services are available via the Frontend proxy: http://localhost:8080
+
+by running these commands:
+
+kubectl --namespace default port-forward svc/my-otel-demo-frontendproxy 8080:8080  
+
+The following services are available at these paths once the proxy is exposed:
+
+Webstore http://localhost:8080/
+Grafana http://localhost:8080/grafana/
+Load Generator UI http://localhost:8080/loadgen/
+Jaeger UI http://localhost:8080/jaeger/ui/
+```
+Identifier l'IP publique du LoadBalancer par `kubectl get svc` et visiter cette IP sur le port 8080 pour générer des logs/traces.
+
+Dans le portail Grafana, on retrouve les logs : si on identifie un `trace_id`, on peut le chercher dans tempo :
+
+![loki](/img/loki1.png)
+![loki](/img/loki2.png)
+![loki](/img/loki3.png)
+![loki](/img/loki4.png)
+![loki](/img/loki5.png)
+![loki](/img/loki6.png)
+
+  
