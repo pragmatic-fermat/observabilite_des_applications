@@ -118,7 +118,7 @@ Dans l'interface Grafana, créer un nouveau conecteur
 
 ![loki](/img/loki1.png)
 
-En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contientdra notamment la configuration du collecteur opentelemetry embarquée dans l'application de demo.
+En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contientdra notamment la configuration du collecteur opentelemetry embarquée dans l'application de demo.
 
 Cela pourrait ressembler à cela :
 
@@ -254,6 +254,51 @@ Il est alors possible d'avoir cote à coté **corrélés** logs et traces
 ![loki](/img/loki3.png)
 
 
+## Extra : Feature FLag
 
+Il est possible de provoquer des pannes, via un FeatureFlag.
 
-  
+Vérifions son état :
+```
+curl -X POST "http://IP_PUB_ftend_proxy:8080/flagservice//flagd.evaluation.v1.Service/ResolveBoolean" \       
+  -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
+```
+
+On obtient :
+```
+{"value":false,"reason":"STATIC","variant":"off","metadata":{}}%
+```   
+
+ Editons le configmap en ```vi``` pour activer les erreurs sur le service ```ProductCatalog``` :
+```
+ kubectl edit cm/my-otel-demo-flagd-config 
+```
+
+La ligne à modifier est celle qui va contenir ``` "defaultVariant": "on" ``` :
+```
+[..]
+      "flags": {
+        "productCatalogFailure": {
+          "description": "Fail product catalog service on a specific product",
+          "state": "ENABLED",
+          "variants": {
+            "on": true,
+            "off": false
+          },
+          "defaultVariant": "on"
+        },
+[..]
+```
+
+L'application est immédiate :
+```
+curl -X POST "http://IP_PUB_ftend_proxy:8080/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" \
+  -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
+  ```
+qui donne :
+```
+{"value":true,"reason":"STATIC","variant":"on","metadata":{}}  
+```
+
+On constate alors que la route ```/product/OLJCESPC7Z``` est KO
+![ko](/img/otel-ko.png)
