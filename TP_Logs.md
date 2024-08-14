@@ -234,14 +234,19 @@ Dans le portail Grafana, renseigner le champ `service_name` et `service_namespac
 Normalement le test devrait être OK dans le portail Grafana :
 ![loki](/img/loki2.png)
 
-Dans le portail Grafana, on retrouve les logs : si on identifie un `trace_id`, on peut le chercher dans tempo :
-
-![loki](/img/loki3.png)
-
-![loki](/img/loki4.png)
-
+Dans le portail Grafana, on retrouve les logs : 
 ![loki](/img/loki5.png)
 
+Identifier un `trace_id`
 ![loki](/img/loki6.png)
+
+Cherchez ce `trace_id` chercher dans tempo :
+![loki](/img/loki4.png)
+
+Il est alors possible d'avoir cote à coté **corrélés** logs et traces
+![loki](/img/loki3.png)
+
+
+
 
   
