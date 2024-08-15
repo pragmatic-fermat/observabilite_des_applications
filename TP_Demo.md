@@ -1,11 +1,13 @@
-# Objectifs
+# Objectif
 
-C'est un Lab très complet qui permet de voir l'ensemble de la stack d'observabilité sur une application moderne complexe.
+C'est un Lab très complet qui permet de voir l'ensemble de la stack d'observabilité sur une application moderne complexe avec de l'instrumentation au niveau de plusieurs composants codés dans des langages différents.
 
 ## Deploiement de l'apli demo-otel
 
 Notre object est de publier l'applications suivante, de l'instrumenter et de la debugger :
 ![darchi](/img/demo-archi.png)
+
+Nous avons fait le choix du backend grafana_cloud, mais d'autres sont possibles tels que [Datadog](https://docs.datadoghq.com/fr/opentelemetry/guide/otel_demo_to_datadog/?tab=kubernetes) ou [Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/) pour ne citer qu'eux...
 
 Repartons à vide :
 ```
@@ -268,6 +270,8 @@ Dans le navigateur on voit la trace détaillée :
 
 Qu'on peut retrouver dans Grafana :
 ![trace](/img/trace2.png)
+
+Notez en bas à droite le `Status Message` qui donne la cause de l'erreur (i.e 'FeatureFlag enabled')
 
 On peut également faire le chemin inverse, c-a-d chercher les spans d'erreur puis les investiguer :
 ![trace](/img/trace3.png)
