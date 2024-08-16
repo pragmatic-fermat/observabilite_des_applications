@@ -1,15 +1,110 @@
 # Objectifs
 
-- Export de logs depuis un serveur Linux avec l’agent Beats (FileBeats) vers un indexeur Logstash
-- Export de logs depuis un cluster Kubernetes
+- Export de logs (non-)structurés depuis un serveur Linux avec l’agent Beats (FileBeats) vers ElasticSearch
+- Export de logs depuis un cluster Kubernetes vers Grafana_cloud
 - Visualisation dans Grafana Loki
+
+## Export de logs vers Elastic avec Filebeat
+
+Sur la VM 'srv', nous allons :
+- installer nginx
+- lancer des containers Elastic et Filebeat
+
+Nous constaterons que l'utilisation de logs structurés est plus que souhaitable...
+
+### Installation de nginx
+```
+apt install -y nginx
+```
+### Lancement de Elastic et Filebeat
+
+L'installation d'un Elastic on prem dans ses dernières versions est incroyablement complexe ...
+
+Il faut d'abord positionner une variable à un seuil minimum :
+```
+echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+sysctl -p
+```
+
+Puis creeons le fichier `docker-compose.yaml` suivant
+```
+services:
+  elasticsearch:
+    image: elasticsearch:7.17.3
+    environment:
+      - discovery.type=single-node
+  
+  kibana:
+    image: kibana:7.17.3
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - 5601:5601
+  
+  shipper:
+    image: docker.elastic.co/beats/filebeat:8.14.0
+    user: root
+    volumes:
+      - /var/log/:/var/log-external
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+```
+
+et le fichier de configuration `filebeat.yml` suivant :
+```
+filebeat.modules:
+- module: nginx
+  access:
+    var.paths: ["/var/log-external/nginx/access.log"]
+  error:
+    var.paths: ["/var/log-external/nginx/error.log"]
+
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log-external/auth.log
+
+output.elasticsearch:
+  hosts: elasticsearch:9200
+  indices:
+    - index: "nginx-logs"
+```
+
+Ouvrons le firewall
+```
+ufw allow 5601/tcp
+```
+### Interface de restitution (kibana)
+
+Naviguons sur http://IP_srv:5601
+
+Pendant plusieurs minutes vous aurez :
+![kibana_wait](/img/kibana-wait.png)
+
+Allez ensuite dans les menus à gauche :
+```
+Management > Stack Management > Kibana > Index Patterns > Create index pattern > name: *, Timestamp field: @timestampt > Create index pattern
+```
+
+Allez ensuite dans ```Analytics > Discover``` :
+![kibana1](/img/kibana1.png)
+
+On constate que le module a parsé les logs nginx de façon structurée (via un module filebeat) et de façon texte pour les auth.log
+
+![struct](/img/struct.png)
+
+
+![non-struct](/img/non-struct.png)
+
+Comparez la simplicité de recherche suivant le format, et la capcité de recherche croisée...
+
+
 
 ## Export de logs depuis K8s
 
 Pré-requis :
 - Créer un compte (gratuit) sur [Grafanalabs](https://grafana.com/)
-- Obtenir un accès à un cluster k8s
-
+- Obtenir un accès à un cluster k8s (fourni par l'animateur)
+- Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 
 Testons l'accès à notre cluster :
 ```
@@ -18,12 +113,12 @@ Testons l'accès à notre cluster :
 
 On otbient ceci :
 ```
-+ kubectl get nodes
+#kubectl get nodes
 NAME                   STATUS   ROLES    AGE     VERSION
 pool-8mwxj0101-bacu0   Ready    <none>   5m58s   v1.30.2
 pool-8mwxj0101-bacu1   Ready    <none>   5m57s   v1.30.2
 ```
-Vérifion que ```helm``` est bien installé
+Vérifions que ```helm``` est bien installé
 ```
 helm version
 ```
