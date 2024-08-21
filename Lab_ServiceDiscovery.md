@@ -1,4 +1,6 @@
+# Objectif
 
+Mettre en place un load-balancer (HAProxy) dont les serveurs backend sont définis dynamiquement par Service Discovery (Consul)
 
 ## Installation de consul server
 

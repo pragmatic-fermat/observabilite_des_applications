@@ -1,6 +1,6 @@
 # Objectif
 
-C'est un Lab très complet qui permet de voir l'ensemble de la stack d'observabilité sur une application moderne complexe avec de l'instrumentation au niveau de plusieurs composants codés dans des langages différents.
+C'est un lab très complet qui permet de voir l'ensemble de la stack d'observabilité sur une application moderne complexe avec de l'instrumentation au niveau de plusieurs composants codés dans des langages différents.
 
 ## Deploiement de l'apli demo-otel
 

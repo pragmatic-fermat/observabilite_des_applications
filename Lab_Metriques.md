@@ -1,7 +1,7 @@
 
 # Objectifs 
 
-Dans ce TP nous voyons 2 approches de la récupération des métriques :
+Dans ce Lab nous voyons 2 approches de la récupération des métriques :
 
 - mode Pull : un serveur central récupère les métriques, c'est le cas de Prometheus
 - mode Push : sur chaque équipement, un agent exporte les métriques vers un serveur central, c'est le cas de Datadog
@@ -24,8 +24,8 @@ Dans ce TP nous voyons 2 approches de la récupération des métriques :
 # NodeExporter/Prometheus/Grafana
 
 On utilise 2 VMs :
-- le serveur de supervision sur lequel on va installer Prometheus/Grafana
-- le serveur supervisé sur lequel on va installer NodeExporter
+- le serveur de supervision ('srv') sur lequel on va installer Prometheus/Grafana
+- le serveur supervisé ('clt') sur lequel on va installer NodeExporter
 
 ## Installation d'un serveur Prometheus
 

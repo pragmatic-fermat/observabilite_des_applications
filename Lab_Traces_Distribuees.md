@@ -1,7 +1,7 @@
 # Objectifs
 
 - [Installation et déploiement d'une application complexe](#vue-globale)
-- [Ajout d'Open Telemetry dans le code](#auto-instrumentation)
+- [Ajout de l'instrumentation OpenTelemetry dans le code](#auto-instrumentation)
 - [Export et Analyse dans un backend Jaeger](#jaeger)
 - [Instrumentation de Nginx](#instrumenter-nginx)
 - [Extra: Tracing PHP avec Datadog](#extra-tracing-avec-datadog)

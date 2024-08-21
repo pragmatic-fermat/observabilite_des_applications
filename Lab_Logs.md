@@ -1,7 +1,7 @@
 # Objectifs
 
-- Export de logs (non-)structurés depuis un serveur Linux avec l’agent Beats (FileBeats) vers ElasticSearch
-- Export de logs depuis un cluster Kubernetes vers Grafana_cloud
+- Export de logs (non-)structurés depuis un serveur Linux avec l’agent Beats (FileBeats) vers ElasticSearch/Kibana
+- Export de logs depuis un cluster Kubernetes vers Grafana_Cloud avec l'agent Alloy
 - Visualisation dans Grafana Loki
 
 ## Export de logs vers Elastic avec Filebeat
