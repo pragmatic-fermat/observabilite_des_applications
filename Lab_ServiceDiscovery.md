@@ -1,10 +1,11 @@
 # Objectif
 
-Mettre en place un load-balancer (HAProxy) dont les serveurs backend sont définis dynamiquement par Service Discovery (Consul)
+Mettre en place un load-balancer (`HAProxy`) dont les serveurs backend sont définis dynamiquement par Service Discovery (`Hashicorp Consul`)
 
-## Installation de consul server
+## Installation de `consul server`
 
-Commencons à installer le binaire du serveur Consul sur notre serveur principal (IP_srv)
+Commencons à installer le binaire du serveur Consul sur notre serveur principal (`srv`)
+
 ```
 apt-get update -y
 apt-get install unzip gnupg2 curl wget -y
@@ -35,7 +36,8 @@ Notez l'IP publique de votre serveur :
 ip a  show eth0
 ```
 
-Creer le fichier '/etc/systemd/system/consul.service' :
+Créer le fichier `/etc/systemd/system/consul.service` :
+
 ```
 [Unit]
 Description=Consul Service Discovery Agent
@@ -60,14 +62,14 @@ Inscrivons le service :
 systemctl daemon-reload
 ```
 
-Creeons une clé d'authentification (key_srv)
+Créeons une clé d'authentification (key_srv)
 ```
 consul keygen
 ```
 
-C'était pour l'exemple, pour simplifier on utilisera la clé plus bas.
+C'était pour l'exemple; pour simplifier on utilisera la clé plus bas.
 
-Puis le fichier '/etc/consul.d/config.json'
+Puis le fichier `/etc/consul.d/config.json` en remplaçant `IP_srv`
 ```
 {
 "bootstrap": true,
@@ -98,7 +100,7 @@ Vérifions que la socket est bien ouverte :
 ss -plunt | grep 8500
 ```
 
-N'oublions pas eventuellement le firewall local [doc](https://developer.hashicorp.com/consul/docs/install/ports) :
+N'oublions pas éventuellement le firewall local [matrice de flux](https://developer.hashicorp.com/consul/docs/install/ports) :
 ```
 ufw allow 8500/tcp
 ufw allow 8300:8302
@@ -107,9 +109,9 @@ ufw allow 8600
 
 Visitons http://IP_srv:8500
 
-## Installation de HAProxy 
+## Installation de `HAProxy` 
 
-Toujours sur IP_srv, install HAProxy :
+Toujours sur `srv`, installons HAProxy :
 
 ```
 add-apt-repository -y ppa:vbernat/haproxy-2.4
@@ -125,7 +127,7 @@ cp build/dataplaneapi /usr/local/bin/
 chmod +x /usr/local/bin/dataplaneapi
 ```
 
-Creeons le fichier `/etc/haproxy/dataplaneapi.yaml` ** (attention à IP_srv) ** 
+Créeons le fichier `/etc/haproxy/dataplaneapi.yaml` ** (attention à IP_srv) ** 
 
 ```
 config_version: 2
@@ -155,9 +157,9 @@ systemctl restart haproxy
 
 
 
-### Installation Consul Client
+### Installation `Consul Client`
 
-Sur le Client clt, réaliser la même installation de consul avec le fichier /etc/consul.d/consul.json :
+Sur le Client `clt`, réaliser la même installation de consul avec ce fichier `/etc/consul.d/consul.json` :
 ```
 {
   "bind_addr": "@IP_clt",
@@ -184,7 +186,7 @@ et le nouveau fichier `/etc/consul.d/web.json` :
   }
 }
 ```
-Lancons le service consul 
+Lançons le service consul 
 ```
 systemctl reload consul.service
 ```
@@ -216,11 +218,11 @@ curl -u dataplaneapi:mypassword \
 Le retour ressemble à ceci :
 ```
 {"address":"IP_srv","enabled":true,"id":"fe370187-bc17-45e0-a7e9-d66912632b40","port":8500,"retry_timeout":10,"server_slots_base":10,"server_slots_growth_increment":10,"server_slots_growth_type":"linear","service-blacklist":null,"service-whitelist":null,"service_allowlist":null,"service_denylist":null}
-root@soea-01:~# cat /etc/haproxy/haproxy.cfg
 ```
 
-Et maintenant la fin du fichier '/etc/haproxy/haproxy.cfg' a été complétée :
+Et maintenant la fin du fichier `/etc/haproxy/haproxy.cfg` a été complétée :
 ```
+root@soea-01:~# cat /etc/haproxy/haproxy.cfg
 [..]
 backend consul-backend-IP_clt-8500-web 
   server SRV_wtPx5 IP_clt:80 check weight 128
@@ -235,13 +237,13 @@ backend consul-backend-IP_clt-8500-web
   server SRV_QIzuA 127.0.0.1:80 disabled weight 128
   ```
 
-Lançons notre service web sur clt :
+Lançons notre service web sur `clt` :
 ```
 docker run -d -p 80:9898 stefanprodan/podinfo
 ufw allow 80/tcp
 ```
 
-Coté srv, finalisons la conf de haproxy en ajoutant qq chose de ce genre :
+Coté `srv`, finalisons la config de haproxy en ajoutant qq chose de ce genre (attantion à `IP_clt` :
 ```
 [..]
 frontend myfrontend 
@@ -257,14 +259,15 @@ ufw allow 80/tcp
 
 ## Scaling dynamique
 
-En production, nous ajouterions des VMs.
-On peut le faire, mais par manque de temps, nous allons juste ajouter un autre container sur le serveur srv :
+En production, nous ajouterions autant de VMs que de serveurs backends, probablement via Terrform.
+
+On peut le faire, mais par manque de temps, nous allons juste ajouter un autre container web, localisé sur le serveur `srv` :
 
 ```
 docker run -d -p 9898:9898 stefanprodan/podinfo
 ```
 
-Et on ajoute le fichier /etc/consul.d/web9898.json sur srv toujours :
+Et on ajoute le fichier /etc/consul.d/web9898.json sur `srv` toujours :
 ```
 {
   "service": {
@@ -279,11 +282,12 @@ suivi de :
 consul services register /etc/consul.d/web9898.json
 ```
 
-Vérifier que le site web est bien load-balancé
+Vérifier que le site web est bien load-balancé (en le visitant...)
 
 ## Extra HA Proxy Stats
 
-Ajouter ceci au /etc/haproxy/haproxy.cfg :
+Ajouter ceci au `/etc/haproxy/haproxy.cfg` :
+
 ```
 frontend stats
     mode http
