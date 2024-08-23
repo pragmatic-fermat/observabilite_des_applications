@@ -1,10 +1,10 @@
 
 # Objectifs 
 
-Dans ce Lab nous voyons 2 approches de la récupération des métriques :
+Dans ce lab nous voyons 2 approches de la récupération des métriques :
 
-- mode Pull : un serveur central récupère les métriques, c'est le cas de Prometheus
-- mode Push : sur chaque équipement, un agent exporte les métriques vers un serveur central, c'est le cas de Datadog
+- mode **Pull** : un serveur central récupère les métriques, c'est le cas de Prometheus
+- mode **Push** : sur chaque équipement, un agent exporte les métriques vers un serveur central, c'est le cas de Datadog
 
 # Contenu
 
@@ -24,25 +24,25 @@ Dans ce Lab nous voyons 2 approches de la récupération des métriques :
 # NodeExporter/Prometheus/Grafana
 
 On utilise 2 VMs :
-- le serveur de supervision ('srv') sur lequel on va installer Prometheus/Grafana
-- le serveur supervisé ('clt') sur lequel on va installer NodeExporter
+- le serveur de supervision (`srv`) sur lequel on va installer `Prometheus` et `Grafana`
+- le serveur supervisé (`clt`) sur lequel on va installer `NodeExporter`
 
-## Installation d'un serveur Prometheus
+## Installation d'un serveur `Prometheus`
 
-Connectez vous au serveur de supervision suivant les accès fournis par l'animateur.
+Connectez-vous au serveur de supervision `srv` suivant les accès fournis par l'animateur.
 
-Vérifions que le moteur docker est bien installé
+Vérifions que le moteur `docker` est bien installé
 ```
 docker version
 ```
 
-Créeons le répertoire /home/prometheus :
+Créeons le répertoire `/home/prometheus` :
 ```
 mkdir /home/prometheus
 cd /home/prometheus
 ```
 
-Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service :
+Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service `prometheus` :
 
 ```
 services:
@@ -68,7 +68,7 @@ volumes:
   prometheus-data:
 ```
 
-Créeons le fichier de configuration dans ```/home/prometheus/prometheus.yml``` :
+Créeons le fichier de configuration  ```/home/prometheus/prometheus.yml``` :
 
 ```
 global:
@@ -80,7 +80,7 @@ scrape_configs:
       - targets: ['prometheus:9090']
 ```
 
-Notez l'utilisation du nom `prometheus` qui sera résolu par Docker.
+Notez l'utilisation du nom `prometheus` qui sera résolu localement par Docker.
 
 Lançons le serveur :
 ```
@@ -89,11 +89,25 @@ docker compose up -d
 ```
 
 Naviguez sur la page Prometheus : http://IP_srv_prom:9090 , et explorez les métriques.
-Par exemple, retrouvez la métrique qui donne le timestamp de lancement du service prometheus.
 
-## Installation de NodeExporter sur un autre serveur
+Par exemple, retrouvez la métrique qui donne le timestamp de lancement du service prometheus et affichez sa valeur et son graphe.
 
-Sur un autre serveur (appellons-le `clt`), installons NodeExporter :
+Autre exemple (cf [doc](https://prometheus.io/docs/prometheus/latest/querying/examples/)), aggrégez les visites des pages web par URI :
+```
+sum(prometheus_http_requests_total) by (handler)
+```
+ou par code retour :
+```
+sum(prometheus_http_requests_total) by (code)
+```
+ou lister les 3 URLs qui comptabilisent le plus de code 200
+``` 
+topk(3,prometheus_http_requests_total{code="200"})
+```
+
+## Installation de `NodeExporter` sur un autre serveur (`clt`)
+
+Sur un autre serveur (appellons-le `clt`), installons `NodeExporter` :
 
 Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192)
 
@@ -107,7 +121,7 @@ ufw allow 9100/tcp
 ```
 Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics 
 
-## Supervision du serveur Linux
+## Supervision du serveur Linux `clt`
 
 Sur le serveur Prometheus, modifier le fichier ```/home/prometheus/prometheus.yml```, afin d'y ajouter :
 
@@ -176,7 +190,7 @@ docker compose create
 docker compose up -d
 ```
 
-Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin/admin : http://IP_srv:3000
+Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds admin/admin : http://IP_srv:3000
 
 - Aller dans le menu sur la gauche and sélectionner “Connections / Data Sources.”
 - Clicquer sur “Add your  data source.”
@@ -188,7 +202,7 @@ Consultons l'interface web Grafana en HTTP sur le port 3000 avec les creds admin
 
 - Chercher dans la page [Grafana Dashboard](https://grafana.com/grafana/dashboards/) le dashboard ”Node Exporter Full”.
 - Copier le dashboard ID. Dans notre cas, l'ID est 1860.
-- De retour sur *notre* grafana, sur la gauche, cliquer sur  “Dashboard” puis le bouton bleu enn haut à gauche "New" : dans cette list déroulante, sélectionner “Import”
+- De retour sur *notre* Grafana, sur la gauche, cliquer sur  “Dashboard” puis le bouton bleu enn haut à gauche "New" : dans cette list déroulante, sélectionner “Import”
 - Dans la section “Grafana.com Dashboard” , copier le dashboard ID (1860) dans le champ “Grafana.com Dashboard ID” .
 - Cliquer sur le bouton “Load” , sélectionner *notre* prometheus dans le champ (liste déroulante)
 
@@ -198,13 +212,13 @@ Naviger dans la section des Dashboard....
 
 ## Ajout d'une metrique custom dans NodeExporter
 
-Sur le serveur supervisé (clt) :
+Sur le serveur supervisé (`clt`) :
 
 ```
 mkdir /home/textfile
 ```
 
-Configurez nodeexporter pour prendre en compte ce répertoire , modifiant la ligne suivante dans '/etc/systemd/system/node_exporter.service':
+Configurez NodeExporter pour prendre en compte ce répertoire , modifiant la ligne suivante dans `/etc/systemd/system/node_exporter.service`:
 ```
 ExecStart=/opt/node_exporter/node_exporter --collector.textfile.directory=/home/textfile
 ```
@@ -234,11 +248,12 @@ Cette métrique doit également être consutable sur Prometheus directement : ht
 ![prom-custom](img/prom-custom.png)
 
 Plus de détails [ici](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)
+
 Notez la mention de ```spunge``` afin d'écrire atomiquement le fichier ```textfile```.
 
 ## Instrumenter le Code pour Prometheus
 
-Sur clt, nous allons créer une application instrumentée :
+Sur `clt`, nous allons instrumenter  une application API écrite en python avec flask :
 
 ```
 apt install -y python3-prometheus-client python3-flask
@@ -296,14 +311,13 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-Visiter le site web http://IP_clt:8000  (les métriques Prometheus) 
-
-![app-instr](img/app-instr.png)
-
-
-et http://IP_clt:5000 (l'application)
+Visiter le site web  http://IP_clt:5000 (l'application)
 
 ![app-inst-metr](img/app-instr-met.png)
+
+puis le site http://IP_clt:8000  (les métriques Prometheus) 
+
+![app-instr](img/app-instr.png)
 
 
 # Supervision avec Datadog
@@ -312,7 +326,7 @@ et http://IP_clt:5000 (l'application)
 
 Créez un compte (gratuit) sur [Datadog](http://datadog.com)
 
-Suivez la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) avec la création à la volée d'une clé API.
+Suivez la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) (Integration > Agent) avec la création à la volée d'une clé API.
 
 ![dd-agent](img/dd-agent.png)
 
@@ -324,11 +338,11 @@ Vous pouvez créer une alerte (monitor) sur cette [page](https://app.datadoghq.e
 
 ## Metrique custom dans Datadog
 
-Supposons que nous souhaitions connaitre le nombre de lignes dans les tables d'une base de donnée.
+Supposons que nous souhaitions connaitre le nombre de lignes dans les tables d'une base de données.
 
 ### Installation d'une base de données sur le serveur supervisé
 
-Sur notre serveur 'clt' :
+Sur notre serveur `clt` :
 
 ```
 apt install -y mariadb-server unzip
@@ -372,7 +386,7 @@ Enfin, importons le fichier de base de données et configurons le mdp root mysql
 
 ### Configuration de l'agent Datadog
 
-Sur le serveur supervisé (i.e 'clt'):
+Sur le serveur supervisé (i.e `clt`):
 ```
 cd /etc/datadog/conf.d/mysql.d
 ```
@@ -410,7 +424,7 @@ Relancer l'agent datadog et vérifier que la plugin SQL est sans erreur :
 ```
 systemctl restart datadog-agent
 ```
-Lancer plusieur l'outil de diag jusqu'à ce que le paragraphe MySQL soit ok :
+Lancer plusieurs fois l'outil de diagnostic jusqu'à ce que le paragraphe MySQL soit ok :
 ```
 # datadog-agent status | grep -A10 -i mysql 
     mysql (12.5.1)
