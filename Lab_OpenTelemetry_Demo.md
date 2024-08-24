@@ -7,21 +7,23 @@ C'est un lab très complet qui permet de voir l'ensemble de la stack d'observabi
 Notre object est de publier l'applications suivante, de l'instrumenter et de la debugger :
 ![darchi](/img/demo-archi.png)
 
-Nous avons fait le choix du backend grafana_cloud, mais d'autres sont possibles tels que [Datadog](https://docs.datadoghq.com/fr/opentelemetry/guide/otel_demo_to_datadog/?tab=kubernetes) ou [Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/) pour ne citer qu'eux...
+Nous avons fait le choix du backend [Grafana Cloud](https://grafana.com/), mais d'autres sont possibles tels que [Datadog](https://docs.datadoghq.com/fr/opentelemetry/guide/otel_demo_to_datadog/?tab=kubernetes) ou [Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/) pour ne citer qu'eux...
 
-Repartons à vide :
+En supposant que nous venons de réaliser le [Lab Logs](/Lab_Logs.md), repartons à vide sur notre cluster Kubernetes :
 ```
 helm delete grafana-k8s-monitoring
 ```
 
-Le cluster qui vous a été fourni est doté d'un ingress nginx, que nous ferons pointer sur le service frontend-proxy :
+Le cluster qui vous a été fourni est déjà doté d'un ingress `nginx`, que nous ferons pointer sur le service frontend-proxy.
+
+Vérifions que l'ingressClass est bien installée :
+
 ```
-+ kubectl get ingressclass
+#kubectl get ingressclass
 NAME    CONTROLLER             PARAMETERS   AGE
 nginx   k8s.io/ingress-nginx   <none>       82m
 ```
 Un FQDN DNS est également attribué à l'IP publique de cet ingress, appellons-le `my-otel-demo.mydomain.com`
-
 
 Dans l'interface Grafana, créer un nouveau conecteur 
 
