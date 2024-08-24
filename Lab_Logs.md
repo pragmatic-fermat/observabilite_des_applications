@@ -73,7 +73,7 @@ Ouvrons le firewall
 ```
 ufw allow 5601/tcp
 ```
-### Interface de restitution (kibana)
+### Interface de restitution (`Kibana`)
 
 Naviguons sur http://IP_srv:5601
 
@@ -101,15 +101,45 @@ Comparez la simplicité de recherche suivant le format, et la capcité de recher
 
 ## Export de logs depuis K8s
 
+### Mise en place accès à K8s
 Pré-requis :
 - Créer un compte (gratuit) sur [Grafanalabs](https://grafana.com/)
 - Obtenir un accès à un cluster k8s (fourni par l'animateur)
 - Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 
+Installons kubectl :
+```
+apt install -y kubectl
+```
+Il nous faut mintenant
+
 Testons l'accès à notre cluster :
 ```
 % kubectl get nodes 
 ```
+
+Nous devons maintenant récupérer le `kubeconfig` qui contient les creds d'accès à notre cluster.
+
+Ceci peut être réalisé éexecutant le script [init.sh](/init.sh) avec les variables GROUPE et ENTROPY fournis par l'animateur :
+```
+#./init.sh  <GRP_NUMBER> <ENTROPY>
+```
+
+Vérifions que l'accèes est OK :
+
+```bash
+kubectl cluster-info
+```
+
+Ce qui doit donner :
+
+```
+Kubernetes control plane is running at https://xxxxxxxx
+CoreDNS is running at https://xxxxxx/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+```
+
+Pour note, une *cheat-sheet* des commandes kubectl est disponible [ici](https://kubernetes.io/fr/docs/reference/kubectl/cheatsheet/)
+
 
 On otbient ceci :
 ```
@@ -122,6 +152,9 @@ Vérifions que ```helm``` est bien installé
 ```
 helm version
 ```
+
+### Installation du HelmChart Grafana
+
 Dans le portail GrafanaLabs, déroulons la procédure d'attachement d'un cluster k8s
 
 ![grafana_labs](/img/graf1.png)
