@@ -2,6 +2,7 @@
 
 C'est un lab très complet qui permet de voir l'ensemble de la stack d'observabilité sur une application moderne complexe avec de l'instrumentation au niveau de plusieurs composants codés dans des langages différents.
 
+
 ## Deploiement de l'apli demo-otel
 
 Notre object est de publier l'applications suivante, de l'instrumenter et de la debugger :
@@ -14,16 +15,19 @@ En supposant que nous venons de réaliser le [Lab Logs](/Lab_Logs.md), repartons
 helm delete grafana-k8s-monitoring
 ```
 
-Le cluster qui vous a été fourni est déjà doté d'un ingress `nginx`, que nous ferons pointer sur le service frontend-proxy.
+Le cluster qui vous a été fourni (cf [Lab Logs](/Lab_Logs.md)) est déjà doté d'un ingress `nginx`, que nous ferons pointer sur le service frontend-proxy.
 
 Vérifions que l'ingressClass est bien installée :
 
 ```
-#kubectl get ingressclass
+kubectl get ingressclass
+```
+On obtient :
+```
 NAME    CONTROLLER             PARAMETERS   AGE
 nginx   k8s.io/ingress-nginx   <none>       82m
 ```
-Un FQDN DNS est également attribué à l'IP publique de cet ingress, appellons-le `my-otel-demo.mydomain.com`
+Un FQDN DNS est également attribué à l'IP publique de cet ingress, appellons-le `my-otel-demo.mydomain.com` dans le reste de ce document.
 
 Dans l'interface Grafana, créer un nouveau conecteur 
 
@@ -31,7 +35,7 @@ Dans l'interface Grafana, créer un nouveau conecteur
 
 ![loki](/img/loki1.png)
 
-En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contientdra notamment la configuration du collecteur opentelemetry embarquée dans l'application de demo.
+En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contiendra notamment la configuration du collecteur `opentelemetry` embarqué dans l'application de demo.
 
 Cela pourrait ressembler à cela :
 
@@ -189,7 +193,7 @@ Visiter ce FQDN (en HTTP) pour générer de l'activité :
 
 ## Analyse des traces
 
-Si vous inspectez coté navigateur les requetes,vous verrez même les traces générez par le JS coté navigateur :
+Si vous inspectez coté navigateur les requetes,vous verrez même les traces générées par le JS coté navigateur :
 
 ![browser](/img/browser-traces.png
 

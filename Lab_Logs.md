@@ -107,25 +107,24 @@ Pré-requis :
 - Obtenir un accès à un cluster k8s (fourni par l'animateur)
 - Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 
-Installons kubectl :
-```
+Installons `kubectl` :
+```bash
 apt install -y kubectl
 ```
-Il nous faut mintenant
 
-Testons l'accès à notre cluster :
-```
-% kubectl get nodes 
+Testons :
+```bash
+kubectl version 
 ```
 
 Nous devons maintenant récupérer le `kubeconfig` qui contient les creds d'accès à notre cluster.
 
-Ceci peut être réalisé éexecutant le script [init.sh](/init.sh) avec les variables GROUPE et ENTROPY fournis par l'animateur :
-```
-#./init.sh  <GRP_NUMBER> <ENTROPY>
+Ceci peut être réalisé executant le script [init.sh](/init.sh) avec les variables `GRP_NUMBER` et `ENTROPY` fournies par l'animateur :
+```bash
+./init.sh  <GRP_NUMBER> <ENTROPY>
 ```
 
-Vérifions que l'accèes est OK :
+Vérifions que l'accès est OK :
 
 ```bash
 kubectl cluster-info
@@ -142,14 +141,14 @@ Pour note, une *cheat-sheet* des commandes kubectl est disponible [ici](https://
 
 
 On otbient ceci :
-```
+```bash
 #kubectl get nodes
 NAME                   STATUS   ROLES    AGE     VERSION
 pool-8mwxj0101-bacu0   Ready    <none>   5m58s   v1.30.2
 pool-8mwxj0101-bacu1   Ready    <none>   5m57s   v1.30.2
 ```
-Vérifions que ```helm``` est bien installé
-```
+Vérifions que ```helm``` est bien installé (son installation est incluse dans le script [init.sh](/init.sh))
+```bash
 helm version
 ```
 
