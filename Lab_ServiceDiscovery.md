@@ -1,6 +1,9 @@
 # Objectif
 
-Mettre en place un load-balancer (`HAProxy`) dont les serveurs backend sont définis dynamiquement par Service Discovery (`Hashicorp Consul`)
+Mettre en place un load-balancer (`HAProxy`) dont les serveurs backend sont définis dynamiquement par Service Discovery (`Hashicorp Consul`) :
+
+![haproxy-consul](/img/haproxy-consul.png)
+
 
 ## Installation de `consul server`
 
@@ -29,11 +32,6 @@ mkdir /etc/consul.d
 chown -R consul:consul /var/lib/consul
 chmod -R 775 /var/lib/consul
 chown -R consul:consul /etc/consul.d
-```
-
-Notez l'IP publique de votre serveur :
-```
-ip a  show eth0
 ```
 
 Créer le fichier `/etc/systemd/system/consul.service` :
@@ -69,7 +67,13 @@ consul keygen
 
 C'était pour l'exemple; pour simplifier on utilisera la clé plus bas.
 
-Puis le fichier `/etc/consul.d/config.json` en remplaçant `IP_srv`
+Notez l'IP publique `IP_srv` de votre serveur :
+```
+ip a  show eth0
+```
+
+
+Puis creez le fichier `/etc/consul.d/config.json` en remplaçant `IP_srv` par sa valeur :
 ```
 {
 "bootstrap": true,
