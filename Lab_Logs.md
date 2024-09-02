@@ -6,19 +6,19 @@
 
 ## Export de logs vers Elastic avec Filebeat
 
-Sur la VM 'srv', nous allons :
-- installer nginx
-- lancer des containers Elastic et Filebeat
+Sur la VM `srv`, nous allons :
+- installer `nginx`
+- lancer des containers `Elastic` et `Filebeat`
 
 Nous constaterons que l'utilisation de logs structurés est plus que souhaitable...
 
-### Installation de nginx
+### Installation de `nginx`
 ```
 apt install -y nginx
 ```
-### Lancement de Elastic et Filebeat
+### Lancement de `Elastic` et `Filebeat`
 
-L'installation d'un Elastic on prem dans ses dernières versions est incroyablement complexe ...
+L'installation d'un Elastic on-prem dans ses dernières versions est incroyablement complexe ...
 
 Il faut d'abord positionner une variable à un seuil minimum :
 ```
@@ -102,9 +102,13 @@ Comparez la simplicité de recherche suivant le format, et la capcité de recher
 ## Export de logs depuis K8s
 
 ### Mise en place accès à K8s
+
 Pré-requis :
+
 - Créer un compte (gratuit) sur [Grafanalabs](https://grafana.com/)
+
 - Obtenir un accès à un cluster k8s (fourni par l'animateur)
+
 - Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 
 Installons `kubectl` :
@@ -120,6 +124,13 @@ kubectl version
 Nous devons maintenant récupérer le `kubeconfig` qui contient les creds d'accès à notre cluster.
 
 Ceci peut être réalisé executant le script [init.sh](/init.sh) avec les variables `GRP_NUMBER` et `ENTROPY` fournies par l'animateur :
+```bash
+wget https://raw.githubusercontent.com/pragmatic-fermat/supervision_et_observabilite/main/init.sh
+chmod a+x init.sh
+```
+
+Puis
+
 ```bash
 ./init.sh  <GRP_NUMBER> <ENTROPY>
 ```
