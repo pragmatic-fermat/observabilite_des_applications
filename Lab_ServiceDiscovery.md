@@ -169,7 +169,7 @@ program api
 
 Relançons HAProxy :
 ```
-uwf allow 5555/tcp
+ufw allow 5555/tcp
 systemctl restart haproxy
 ```
 
@@ -177,7 +177,30 @@ systemctl restart haproxy
 
 ### Installation `Consul Client`
 
-Sur le Client `clt`, réaliser la même installation de consul avec ce fichier `/etc/consul.d/consul.json` :
+Sur le Client `clt`, réaliser la même installation de consul 
+
+- avec ce fichier `/etc/systemd/system/consul.service` :
+
+```
+[Unit]
+Description=Consul Service Discovery Agent
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=consul
+Group=consul
+ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+TimeoutStopSec=5
+Restart=on-failure
+SyslogIdentifier=consul
+[Install]
+WantedBy=multi-user.target
+```
+
+- avec ce fichier `/etc/consul.d/consul.json` :
 ```
 {
   "bind_addr": "@IP_clt",
