@@ -113,11 +113,43 @@ topk(3,prometheus_http_requests_total{code="200"})
 
 Sur un autre serveur (appellons-le `clt`), installons `NodeExporter` :
 
-Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192)
+Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192) , que nous reproduisons ci-dessous :
+
+```
+useradd --no-create-home --shell /bin/false node_exporter
+wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
+tar xvf node_exporter-0.18.1.linux-amd64.tar.gz
+mv node_exporter-0.18.1.linux-amd64 /opt/node_exporter
+chown -R node_exporter:node_exporter /opt/node_exporter
+```
+
+Créer le fichier ```/etc/systemd/system/node_exporter.service``` :
+
+```
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/opt/node_exporter/node_exporter --collector.systemd
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Puis
+
+```
+systemctl enable node_exporter
+sudo systemctl daemon-reload
+sudo systemctl start node_exporter && sudo journalctl -f --unit node_exporter
+```
 
 NB : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
-NB2 : en debut d'étape 7. , tapez `systemctl enable node_exporter`
-
 
 On pense à ouvrir le firewall pour le flux TCP/9100 entrant :
 ```
