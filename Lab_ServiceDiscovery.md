@@ -235,7 +235,7 @@ systemctl reload consul.service
 Consultez les logs (`/var/log/syslog`) et l'interface web
 Si le firewall pose problème vous pouvez lancer sur le `srv` : `ufw allow from IP_clt` et vice-versa
 
-On obtient enfin l'affichage du noeud
+On obtient enfin l'affichage du noeud http://@IP_srv:8500/ui/formation/
 
 ![consul1](/img/consul1.png)
 
@@ -284,7 +284,7 @@ docker run --name podinfo -d -p 80:9898 stefanprodan/podinfo
 ufw allow 80/tcp
 ```
 
-Coté `srv`, finalisons la config de haproxy en ajoutant qq chose de ce genre (attention à `IP_clt` :
+Coté `srv`, finalisons la config de haproxy /etc/haproxy/haproxy.cfg en ajoutant qq chose de ce genre (attention à `IP_clt`) :
 ```
 [..]
 frontend myfrontend 
