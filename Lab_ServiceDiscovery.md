@@ -100,7 +100,7 @@ Puis creez le fichier `/etc/consul.d/config.json` en remplaçant `IP_srv` par sa
 }
 ```
 
-Lançons le service
+Lançons le service et vérifions son état ("q" pour sortir)
 ```
 systemctl start consul
 systemctl enable consul
