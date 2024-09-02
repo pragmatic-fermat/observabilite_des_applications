@@ -156,7 +156,7 @@ Puis
 ```
 systemctl enable node_exporter
 systemctl daemon-reload
-systemctl start node_exporter && journalctl -f --unit node_exporter
+systemctl start node_exporter
 ```
 
 NB : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
