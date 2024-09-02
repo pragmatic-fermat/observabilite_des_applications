@@ -53,7 +53,7 @@ Wants=network-online.target
 Type=simple
 User=consul
 Group=consul
-ExecStart=/usr/local/bin/consul agent -config-dir=/etc/consul.d
+ExecStart=/usr/local/bin/consul agent -server -ui -config-dir=/etc/consul.d
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
 TimeoutStopSec=5
