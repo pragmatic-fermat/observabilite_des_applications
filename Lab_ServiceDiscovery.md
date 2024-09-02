@@ -4,6 +4,14 @@ Mettre en place un load-balancer (`HAProxy`) dont les serveurs backend sont déf
 
 ![haproxy-consul](/img/haproxy-consul.png)
 
+## Pre-requis
+
+Connectez vous en SSH sur les 2 machines `srv` et `clt`
+
+Installer docker si nécesssaire :
+```
+apt -y  install docker.io 
+```
 
 ## Installation de `consul server`
 
