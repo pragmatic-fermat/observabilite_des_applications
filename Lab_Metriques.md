@@ -27,6 +27,10 @@ On utilise 2 VMs :
 - le serveur de supervision (`srv`) sur lequel on va installer `Prometheus` et `Grafana`
 - le serveur supervisé (`clt`) sur lequel on va installer `NodeExporter`
 
+Prometheus "scrappe" (c-a-d lit et analyse) les métriques sur les serveurs supervisés, les stocke dans sa TSDB, accessible pour Grafana.
+
+![prom-arch](/img/prom-architecture.png)
+
 ## Installation d'un serveur `Prometheus`
 
 Connectez-vous au serveur de supervision `srv` suivant les accès fournis par l'animateur.
