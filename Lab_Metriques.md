@@ -35,12 +35,22 @@ Prometheus "scrappe" (c-a-d lit et analyse) les métriques sur les serveurs supe
 
 Connectez-vous au serveur de supervision `srv` suivant les accès fournis par l'animateur.
 
-Vérifions que le moteur `docker` est bien installé
+Vérifions que le moteur `docker` et `docker compose` est bien installé
 ```
 docker version
+docker compose version
 ```
 
-Créeons le répertoire `/home/prometheus` :
+**Si** docker-compose n'est pas installé faire ceci :
+```bash
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
+docker compose version
+```
+
+Maintenant que `docker` et `docker-compose` sont installés, créeons le répertoire `/home/prometheus` :
 ```
 mkdir /home/prometheus
 cd /home/prometheus
