@@ -112,11 +112,17 @@ Vérifions que la socket est bien ouverte :
 ss -plunt | grep 8500
 ```
 
-N'oublions pas éventuellement le firewall local [matrice de flux](https://developer.hashicorp.com/consul/docs/install/ports) :
+Vérifier si votre firewall est actif
+```
+ufw status
+```
+
+Si c'est le cas, n'oublions pas la [matrice de flux](https://developer.hashicorp.com/consul/docs/install/ports) :
 ```
 ufw allow 8500/tcp
 ufw allow 8300:8302
-ufw allow 8600
+ufw allow 8600/tcp
+ufw allow 8600/udp
 ```
 
 Visitons http://IP_srv:8500
