@@ -170,6 +170,7 @@ Sur le serveur Prometheus, modifier le fichier ```/home/prometheus/prometheus.ym
 ```
 
 NB : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
+
 NB2 : attention à bien respecter l'indentation du fichier YAML
 
 Relancer prometheus :
@@ -185,8 +186,9 @@ Requetez et graphez par exemple la metrique `node_network_receive_bytes_total`
 
 ### Ajout du service `Grafana`
 
-Grafana va être executé sous la forme d'un container Docker.
-Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc grafana et son volume) :
+Grafana va être executé sous la forme d'un container Docker, sur notre serveur `srv`.
+
+Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`) :
 
 ```
 services:
@@ -230,7 +232,7 @@ docker compose create
 docker compose up -d
 ```
 
-Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds admin/admin : http://IP_srv:3000
+Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `admin/admin` : http://IP_srv:3000
 
 - Aller dans le menu sur la gauche and sélectionner “Connections / Data Sources.”
 - Clicquer sur “Add your  data source.”
@@ -246,7 +248,7 @@ Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds ad
 - Dans la section “Grafana.com Dashboard” , copier le dashboard ID (1860) dans le champ “Grafana.com Dashboard ID” .
 - Cliquer sur le bouton “Load” , sélectionner *notre* prometheus dans le champ (liste déroulante)
 
-Naviger dans la section des Dashboard.... 
+Naviguer dans la section des Dashboard.... 
 
 ![graf-node](img/graf-node.png)
 
