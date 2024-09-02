@@ -243,11 +243,11 @@ backend consul-backend-IP_clt-8500-web
 
 Lançons notre service web sur `clt` :
 ```
-docker run -d -p 80:9898 stefanprodan/podinfo
+docker run --name podinfo -d -p 80:9898 stefanprodan/podinfo
 ufw allow 80/tcp
 ```
 
-Coté `srv`, finalisons la config de haproxy en ajoutant qq chose de ce genre (attantion à `IP_clt` :
+Coté `srv`, finalisons la config de haproxy en ajoutant qq chose de ce genre (attention à `IP_clt` :
 ```
 [..]
 frontend myfrontend 
@@ -268,7 +268,7 @@ En production, nous ajouterions autant de VMs que de serveurs backends, probable
 On peut le faire, mais par manque de temps, nous allons juste ajouter un autre container web, localisé sur le serveur `srv` :
 
 ```
-docker run -d -p 9898:9898 stefanprodan/podinfo
+docker run --name podinfo -d -p 9898:9898 stefanprodan/podinfo
 ```
 
 Et on ajoute le fichier /etc/consul.d/web9898.json sur `srv` toujours :
@@ -311,3 +311,17 @@ ufw allow 8404/tcp
 Visiter http://IP_srv:8404/stats
 
 ![stats](/img/stats.png)
+
+
+## Cleanup
+
+Sur `srv` arrêtons HAProxy : 
+```
+systemctl stop haproxy.service
+```
+
+Puis stoppons les containers podinfo sur `clt` et `srv` :
+
+```
+docker stop podinfo
+```
