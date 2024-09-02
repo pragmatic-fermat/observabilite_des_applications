@@ -5,4 +5,4 @@
 - [Logs](/Lab_Logs.md)
 - [Traces distribuées](/Lab_Traces_Distribuees.md)
 - [OpenTelemetry Demo](/Lab_OpenTelemetry_Demo.md)
-
+- [Diagnostiquer](/Lab_Diag.md)
