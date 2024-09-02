@@ -171,7 +171,7 @@ Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics
 
 ## Supervision du serveur Linux `clt`
 
-Sur le serveur Prometheus, modifier le fichier ```/home/prometheus/prometheus.yml```, afin d'y ajouter :
+Sur le serveur Prometheus, ajouter en fin de fichier ```/home/prometheus/prometheus.yml```ceci  :
 
 ```
   - job_name: 'node-exporter'
