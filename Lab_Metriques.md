@@ -145,17 +145,19 @@ Puis
 
 ```
 systemctl enable node_exporter
-sudo systemctl daemon-reload
-sudo systemctl start node_exporter && sudo journalctl -f --unit node_exporter
+systemctl daemon-reload
+systemctl start node_exporter && journalctl -f --unit node_exporter
 ```
 
 NB : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
 
-On pense à ouvrir le firewall pour le flux TCP/9100 entrant :
+Si nécessaire, on pense à ouvrir le firewall pour le flux TCP/9100 entrant :
 ```
 ufw allow 9100/tcp
 ```
+
 Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics 
+
 
 ## Supervision du serveur Linux `clt`
 
@@ -171,15 +173,17 @@ NB : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
 NB2 : attention à bien respecter l'indentation du fichier YAML
 
 Relancer prometheus :
+
 ```
 cd /home/prometheus
 docker compose restart
 ```
+
 Naviguez sur la page Prometheus : http://IP_srv:9090/targets 
 
 Requetez et graphez par exemple la metrique `node_network_receive_bytes_total`
 
-### Ajout du service Grafana
+### Ajout du service `Grafana`
 
 Grafana va être executé sous la forme d'un container Docker.
 Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc grafana et son volume) :
