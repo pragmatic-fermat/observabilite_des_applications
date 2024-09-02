@@ -252,7 +252,7 @@ Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `a
 
 ## Dashboard Grafana
 
-- Chercher dans la page [Grafana Dashboard](https://grafana.com/grafana/dashboards/) le dashboard ”Node Exporter Full”.
+- Chercher **sur le web** dans la page [Grafana Dashboard](https://grafana.com/grafana/dashboards/) le dashboard ”Node Exporter Full”.
 - Copier le dashboard ID. Dans notre cas, l'ID est 1860.
 - De retour sur *notre* Grafana, sur la gauche, cliquer sur  “Dashboard” puis le bouton bleu enn haut à gauche "New" : dans cette list déroulante, sélectionner “Import”
 - Dans la section “Grafana.com Dashboard” , copier le dashboard ID (1860) dans le champ “Grafana.com Dashboard ID” .
