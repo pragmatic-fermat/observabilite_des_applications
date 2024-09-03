@@ -18,7 +18,7 @@ PS : Ce Lab est librement inspiré de cet [article Nginx](https://www.f5.com/com
 
 Sur la VM `clt` :
 ```
-mkdir ~/microservices-marchcd ~/microservices-march
+mkdir ~/microservices-marchcd
 git clone https://github.com/microservices-march/messenger --branch mm23-metrics-start
 git clone https://github.com/microservices-march/notifier --branch mm23-metrics-start
 git clone https://github.com/microservices-march/platform --branch mm23-metrics-start
