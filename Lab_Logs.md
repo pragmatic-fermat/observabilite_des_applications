@@ -112,7 +112,8 @@ Pré-requis :
 
 - Créer un compte (gratuit) sur [Grafanalabs](https://grafana.com/)
 
-- Obtenir un accès à un cluster k8s (fourni par l'animateur). UN ingress controler de type nginx est déjà installé, mais il ne sera utilisé que dans le [Lab Demo Otel](/Lab_OpenTelemetry_Demo.md)
+- Obtenir un accès à un cluster k8s (fourni par l'animateur). 
+Un ingress controler de type nginx est déjà installé, mais il ne sera utilisé que dans le [Lab Demo Otel](/Lab_OpenTelemetry_Demo.md)
 
 - Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 

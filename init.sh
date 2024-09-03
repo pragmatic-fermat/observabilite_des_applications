@@ -26,24 +26,5 @@ if [ $? -ne 0 ]; then
   exit -2;
 fi
 
-## install Helm
-if ! helm version ; then
-  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-  chmod 700 get_helm.sh
-  ./get_helm.sh
-  sudo chmod a+x /usr/local/bin/helm
-  helm version
-  rm -f ./get_helm.sh
-fi
-
-if ! k9s version ; then
-	echo "Installation de k9s"
-	curl -sS https://webinstall.dev/k9s | bash
-	k9s version
-else
-	echo "k9s deja installe"
-fi
-
-
 echo "----"
 echo "Votre groupe : ${GRP}"
