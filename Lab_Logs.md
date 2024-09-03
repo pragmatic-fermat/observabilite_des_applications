@@ -189,6 +189,8 @@ Avec ```Helm``` nous pouvons déployons la stack de monitoring (copier/coller de
 
 ![grafana_labs](/img/graf4.png)
 
+**Attention à bien insérer la valeur du TOKEN dans la ligne de commande !!**
+
 ```
 helm repo add grafana https://grafana.github.io/helm-charts &&
   helm repo update &&
@@ -222,6 +224,11 @@ NAMESPACE: default
 STATUS: deployed
 REVISION: 1
 ```
+En cas d'erreur, vous pouvez faire 
+```bash
+helm uninstall grafana-k8s-monitoring
+```
+
 Notons
 
 ![grafana_labs](/img/graf5.png)
