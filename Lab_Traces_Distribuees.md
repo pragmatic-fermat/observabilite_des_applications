@@ -59,11 +59,11 @@ npm install
 
 ## Init db
 
-Dans `/root/messenger/app` :
+Dans `/~/microservices-march/messenger/app` :
 ```
 npm run refresh-db
 ```
-Dans `/root/notifier/app` :
+Dans `~/microservices-march//notifier/app` :
 ```
 npm run refresh-db
 ```
@@ -79,19 +79,19 @@ systemctl restart datadog-agent
 ## Notifier & Messenger
 
 ```
-cd /root/notifier/app
+cd ~/microservices-march//notifier/app
 npm install
 ```
 
 Dans une **première** fenêtre lancer le notifier (qui écoute sur tcp/5000) :
 ```
-cd /root/notifier/app
+cd /~/microservices-march/notifier/app
 node index.mjs 
 ```
 
 Dans une **seconde** fenêtre, lancer le messenger  (qui écoute sur tcp/5000) 
 ```
-cd /root/messenger/app
+cd ~/microservices-march/messenger/app
 node index.mjs 
 ```
 
