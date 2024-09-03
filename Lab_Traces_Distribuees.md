@@ -59,7 +59,7 @@ npm install
 
 ## Init db
 
-Dans `/~/microservices-march/messenger/app` :
+Dans `~/microservices-march/messenger/app` :
 ```
 npm run refresh-db
 ```
