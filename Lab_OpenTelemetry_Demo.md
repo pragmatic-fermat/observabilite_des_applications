@@ -145,7 +145,11 @@ opentelemetry-collector:
 ```
 
 Puis
+```
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
+```
 
+et enfin :
 ```
 helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml
 ```
