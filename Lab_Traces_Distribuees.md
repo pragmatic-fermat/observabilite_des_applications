@@ -310,7 +310,7 @@ Toujours au niveau de `/root/messenger/app` :
 npm install @opentelemetry/exporter-trace-otlp-http@0.36.0
 ```
 
-Modifier ainsi `tracing.mjs` pour incllure la libraire et l'export :
+Modifier ainsi `tracing.mjs` pour inclure la librairie et l'export :
 ```
 //1
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";

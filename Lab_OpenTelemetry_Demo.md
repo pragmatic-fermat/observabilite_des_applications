@@ -29,7 +29,7 @@ nginx   k8s.io/ingress-nginx   <none>       82m
 ```
 Un FQDN DNS est également attribué à l'IP publique de cet ingress, appellons-le `my-otel-demo.mydomain.com` dans le reste de ce document.
 
-Dans l'interface Grafana, créer un nouveau conecteur 
+Dans l'interface Grafana, créer un nouveau connecteur 
 
 ![loki](/img/loki0.png)
 
@@ -66,7 +66,7 @@ components:
         value: http://otel-demo.my-domain.com/otlp-http/v1/traces
 
   loadgenerator:
-    enabled: false
+    enabled: true
 
   imageprovider:
     enabled: true
@@ -197,9 +197,7 @@ Si vous inspectez coté navigateur les requetes,vous verrez même les traces gé
 
 ![browser](/img/browser-traces.png
 
-Dans le portail Grafana, renseigner le champ `service_name` et `service_namespace` (que vous pouvez retrouver dans la documentation du Helm Chart)
-
-![loki](/img/loki2.png)
+Dans le portail Grafana, renseigner le champ `service_name` et `service_namespace` (que vous pouvez retrouver dans la documentation du Helm Chart), comme sur une des images précédentes.
 
 Normalement le test devrait être OK dans le portail Grafana :
 
