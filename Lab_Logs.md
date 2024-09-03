@@ -132,6 +132,7 @@ Nous devons maintenant récupérer le `kubeconfig` qui contient les creds d'acc�
 
 Ceci peut être réalisé executant le script [init.sh](/init.sh) avec les variables `GRP_NUMBER` et `ENTROPY` fournies par l'animateur :
 ```bash
+rm -f ./init.sh
 wget https://raw.githubusercontent.com/pragmatic-fermat/supervision_et_observabilite/main/init.sh
 chmod a+x init.sh
 ```
