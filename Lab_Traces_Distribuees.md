@@ -27,7 +27,117 @@ git clone https://github.com/microservices-march/platform --branch mm23-metrics-
 
 ```
 cd platform
+```
+
+Modifier le `docker-compose.yml` ainsi (de façon à retire le notifier et le messenger)
+```
+---
+services:
+
+  ingress:
+    build: ./ingress
+    container_name: ingress
+    environment:
+      - NGINX_UPSTREAM=68.183.74.159
+    # The ingress service is the only service that has ports exposed out.
+    ports:
+      - 8080:8080
+    networks:
+      - mm_2023
+
+  rabbitmq:
+    image: rabbitmq:3.11.4-management-alpine
+    container_name: rabbitmq
+    hostname: microservices_march
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbit-data:/var/lib/rabbitmq/
+      - rabbit-log:/var/log/rabbitmq/
+    networks:
+      - mm_2023
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.41
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    networks:
+      - mm_2023
+
+  messenger-db:
+    image: postgres:15
+    container_name: messenger-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: messenger
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - 5432:5432
+    volumes:
+      - messenger-db-data:/var/lib/postgresql/data/pgdata
+    networks:
+      - mm_2023
+
+  notifier-db:
+    image: postgres:15
+    container_name: notifier-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: notifier
+      PGDATA: /var/lib/postgresql/data/pgdata
+      PGPORT: 5433
+    ports:
+      - 5433:5433
+    volumes:
+      - notifier-db-data:/var/lib/postgresql/data/pgdata
+    networks:
+      - mm_2023
+
+volumes:
+  rabbit-data:
+  rabbit-log:
+  messenger-db-data:
+  notifier-db-data:
+
+networks:
+  mm_2023:
+    name: mm_2023
+    driver: bridge
+```
+
+Puis lancer le
 docker compose up -d --build
+```
+
+On obtient :
+```
+[+] Running 6/6
+ ✔ Network mm_2023         Created                                                                                         0.1s 
+ ✔ Container rabbitmq      Started                                                                                         0.8s 
+ ✔ Container jaeger        Started                                                                                         0.9s 
+ ✔ Container messenger-db  Started                                                                                         0.7s 
+ ✔ Container notifier-db   Started                                                                                         0.7s 
+ ✔ Container ingress       Started                                                                                         0.8s 
 ```
 
 ## Installons asdf (installateur Node)
@@ -72,6 +182,7 @@ Notre appli écoute sur tcp/5000, comme un des agents de Datadog : conflit !
 Modifions ce dernier :
 
 Dans  `/etc/datadog-agent/datadog.yaml` , modifier la variable `expvar` de 5000 à 5999 (par exe) et relancer datadog
+
 ```
 systemctl restart datadog-agent
 ```
@@ -79,13 +190,13 @@ systemctl restart datadog-agent
 ## Notifier & Messenger
 
 ```
-cd ~/microservices-march//notifier/app
+cd ~/microservices-march/notifier/app
 npm install
 ```
 
 Dans une **première** fenêtre lancer le notifier (qui écoute sur tcp/5000) :
 ```
-cd /~/microservices-march/notifier/app
+cd ~/microservices-march/notifier/app
 node index.mjs 
 ```
 
