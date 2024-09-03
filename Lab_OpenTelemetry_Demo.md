@@ -66,7 +66,8 @@ components:
         value: http://otel-demo.my-domain.com/otlp-http/v1/traces
 
   loadgenerator:
-    enabled: true
+  ## si true, quota exhaustion chez grafana_cloud
+    enabled: false
 
   imageprovider:
     enabled: true
@@ -202,7 +203,7 @@ Si vous inspectez coté navigateur les requetes,vous verrez même les traces gé
 
 ![browser](/img/browser-traces.png)
 
-Dans le portail Grafana, renseigner le champ `service_name` et `service_namespace` (que vous pouvez retrouver dans la documentation du Helm Chart), comme sur une des images précédentes.
+Dans le portail Grafana, renseigner le champ `service_name` et `service_namespace` (que vous pouvez retrouver dans la documentation du Helm Chart), ou comme sur une des images précédentes.
 
 Normalement le test devrait être OK dans le portail Grafana :
 
