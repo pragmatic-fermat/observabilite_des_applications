@@ -97,7 +97,12 @@ On constate que le module a parsé les logs nginx de façon structurée (via un 
 
 Comparez la simplicité de recherche suivant le format, et la capcité de recherche croisée...
 
+### Cleanup
 
+```bash
+systemctl stop nginx.service
+docker compose down
+```
 
 ## Export de logs depuis K8s
 
@@ -113,7 +118,7 @@ Pré-requis :
 
 Installons `kubectl` :
 ```bash
-apt install -y kubectl
+apt install -y kubectl helm
 ```
 
 Testons :
@@ -159,6 +164,7 @@ pool-8mwxj0101-bacu0   Ready    <none>   5m58s   v1.30.2
 pool-8mwxj0101-bacu1   Ready    <none>   5m57s   v1.30.2
 ```
 Vérifions que ```helm``` est bien installé (son installation est incluse dans le script [init.sh](/init.sh))
+
 ```bash
 helm version
 ```

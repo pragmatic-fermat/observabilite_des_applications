@@ -519,3 +519,6 @@ Ensuite aller dans Datadog :
 Soit
 
 ![dd-graph3](img/dd-graph3.png)
+
+## Cleanup
+
