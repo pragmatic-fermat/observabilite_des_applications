@@ -200,7 +200,7 @@ Visiter ce FQDN (en HTTP) pour générer de l'activité :
 
 Si vous inspectez coté navigateur les requetes,vous verrez même les traces générées par le JS coté navigateur :
 
-![browser](/img/browser-traces.png
+![browser](/img/browser-traces.png)
 
 Dans le portail Grafana, renseigner le champ `service_name` et `service_namespace` (que vous pouvez retrouver dans la documentation du Helm Chart), comme sur une des images précédentes.
 
