@@ -112,13 +112,14 @@ Pré-requis :
 
 - Créer un compte (gratuit) sur [Grafanalabs](https://grafana.com/)
 
-- Obtenir un accès à un cluster k8s (fourni par l'animateur)
+- Obtenir un accès à un cluster k8s (fourni par l'animateur). UN ingress controler de type nginx est déjà installé, mais il ne sera utilisé que dans le [Lab Demo Otel](/Lab_OpenTelemetry_Demo.md)
 
 - Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 
-Installons `kubectl` :
+Sur Ubuntu 24.0.4+, installons `kubectl` et `helm` :
 ```bash
-apt install -y kubectl helm
+snap install kubectl --classic
+snap install helm --classic
 ```
 
 Testons :
@@ -245,4 +246,7 @@ grafana-k8s-monitoring-prometheus-node-exporter   2         2         2       2 
 kepler                                            2         2         2       2            2           kubernetes.io/os=linux   67m
 ```
 
- 
+## Cleanup
+```
+helm delete grafana-k8s-monitoring
+ ```
