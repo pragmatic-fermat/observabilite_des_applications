@@ -73,6 +73,12 @@ Ouvrons le firewall
 ```
 ufw allow 5601/tcp
 ```
+
+et lançons les containers :
+```
+docker compose up -d
+```
+
 ### Interface de restitution (`Kibana`)
 
 Naviguons sur http://IP_srv:5601
