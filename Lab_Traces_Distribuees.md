@@ -50,7 +50,7 @@ bash
 ## Install Node en v19
 
 ```
-cd root/messenger/app
+cd ~/microservices-march/messenger/app
 apt-get install -y dirmngr gpg curl gawk
 asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 asdf install
