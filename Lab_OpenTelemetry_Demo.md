@@ -102,6 +102,7 @@ opentelemetry-collector:
     extensions:
       basicauth/grafana_cloud:
         client_auth:
+        ## a personnaliser
           username: "1009912"
           password: "glc_eyJvIjXXX"
 
