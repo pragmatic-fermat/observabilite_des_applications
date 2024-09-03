@@ -131,7 +131,8 @@ snap install helm --classic
 
 Testons :
 ```bash
-kubectl version 
+kubectl version
+helm version 
 ```
 
 Nous devons maintenant récupérer le `kubeconfig` qui contient les creds d'accès à notre cluster.
@@ -172,11 +173,7 @@ NAME                   STATUS   ROLES    AGE     VERSION
 pool-8mwxj0101-bacu0   Ready    <none>   5m58s   v1.30.2
 pool-8mwxj0101-bacu1   Ready    <none>   5m57s   v1.30.2
 ```
-Vérifions que ```helm``` est bien installé (son installation est incluse dans le script [init.sh](/init.sh))
 
-```bash
-helm version
-```
 
 ### Installation du HelmChart Grafana
 
