@@ -29,7 +29,7 @@ git clone https://github.com/microservices-march/platform --branch mm23-metrics-
 cd platform
 ```
 
-Modifier le `docker-compose.yml` ainsi (de façon à retire le notifier et le messenger)
+Modifier le `docker-compose.yml` ainsi (de façon à retirer le `notifier` et le `messenger`)
 ```
 ---
 services:
@@ -125,7 +125,8 @@ networks:
     driver: bridge
 ```
 
-Puis lancer le
+Puis lancer les containers :
+```
 docker compose up -d --build
 ```
 
@@ -146,10 +147,13 @@ cd /root
 git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
 ```
 
-Ajouter en fin de /root/.bashrc
+Ajoutons 2 lignes en fin de `/root/.bashrc`
+
 ```
+cat <<EOF >> /root/.bashrc
 . "$HOME/.asdf/asdf.sh"
 . "$HOME/.asdf/completions/asdf.bash"
+EOF
 ```
 
 Relancez le shell :
@@ -157,7 +161,7 @@ Relancez le shell :
 bash
 ```
 
-## Install Node en v19
+## Installation de Node en v19
 
 ```
 cd ~/microservices-march/messenger/app
@@ -167,7 +171,7 @@ asdf install
 npm install
 ```
 
-## Init db
+## Initialisation de la Base de Données
 
 Dans `~/microservices-march/messenger/app` :
 ```
@@ -181,7 +185,7 @@ npm run refresh-db
 Notre appli écoute sur tcp/5000, comme un des agents de Datadog : conflit !
 Modifions ce dernier :
 
-Dans  `/etc/datadog-agent/datadog.yaml` , modifier la variable `expvar` de 5000 à 5999 (par exe) et relancer datadog
+Dans  `/etc/datadog-agent/datadog.yaml` , modifier la variable `expvar` de 5000 à 5999 (par exemple) et relancer datadog ainsi :
 
 ```
 systemctl restart datadog-agent
@@ -194,21 +198,21 @@ cd ~/microservices-march/notifier/app
 npm install
 ```
 
-Dans une **première** fenêtre lancer le notifier (qui écoute sur tcp/5000) :
+Dans une **première** fenêtre lancer le `notifier` (qui écoute sur tcp/5000) :
 ```
 cd ~/microservices-march/notifier/app
 node index.mjs 
 ```
 
-Dans une **seconde** fenêtre, lancer le messenger  (qui écoute sur tcp/5000) 
+Dans une **seconde** fenêtre, lancer le `messenger`  (qui écoute sur tcp/5000) 
 ```
 cd ~/microservices-march/messenger/app
 node index.mjs 
 ```
 
-Dans une **troisieme** fenetre, lancer une requete de message
+Dans une **troisieme** fenetre, nous allons lancer des requetes de messages :
 
-Créeons une conversation :
+- créeons une conversation :
 ```
 curl -X POST  \
     -H "Content-Type: application/json" \
@@ -216,7 +220,7 @@ curl -X POST  \
    'http://localhost:4000/conversations'
 ```
 
-envoyons ensuite un message
+- envoyons ensuite un message
 ```
 curl -X POST \
     -H "User-Id: 1" \
@@ -225,7 +229,7 @@ curl -X POST \
     'http://localhost:4000/conversations/1/messages'
 ```
 
-Le message apparait dans la feneêtre du notifier
+Le message apparait dans la feneêtre du `notifier`
 
 ## Auto-instrumentation
 
@@ -234,7 +238,7 @@ Voici notre objectif :
 
 Commençons par auto-instrumenter:
 
-Interrompez (Ctrl-C) le service node messenger
+Interrompez (Ctrl-C) le service node `messenger`
 
 Puis 
 ```
@@ -303,7 +307,7 @@ Des spans apparaissent à la console , notamment lors des POST :
 
 Visiter  http://IP_clt:16686/search
 
-Tout est vide. : rien n'est envoyé.
+Tout est vide : rien n'est envoyé.
 
 Toujours au niveau de `/root/messenger/app` :
 ```
@@ -334,7 +338,7 @@ Relancer :
 node --import ./tracing.mjs index.mjs
 ```
 
-Dans Jaeger vous devoir voir ceci 
+Dans Jaeger vous devez voir ceci 
 
 ![jaeger1](/img/tutorial-OTel-tracing-microservices_ch2-unknown-service.png)
 
