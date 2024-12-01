@@ -159,7 +159,7 @@ systemctl daemon-reload
 systemctl start node_exporter
 ```
 
-NB : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
+**NB** : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
 
 Si nécessaire, on pense à ouvrir le firewall pour le flux TCP/9100 entrant :
 ```
@@ -179,9 +179,9 @@ Sur le serveur Prometheus, ajouter en fin de fichier ```/home/prometheus/prometh
       - targets: ['IP_clt:9100']
 ```
 
-NB : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
+**NB** : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
 
-NB2 : attention à bien respecter l'indentation du fichier YAML
+**NB2** : attention à bien respecter l'indentation du fichier YAML
 
 Relancer prometheus :
 
@@ -289,6 +289,10 @@ echo ma_metrique_custom $(date +%s) > /home/textfile/ma_metrique_custom.prom
 Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics  et constatez que notre métrique est incluse dans la page !
 ```
 curl -s http://IP_clt:9100/metrics | grep "ma_metrique_custom"
+```
+
+On obtient :
+```
 # HELP ma_metrique_custom Metric read from /home/textfile/ma_metrique_custom.prom
 # TYPE ma_metrique_custom untyped
 ma_metrique_custom 1.722946125e+09
