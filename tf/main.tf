@@ -22,6 +22,10 @@ variable "ssh_keys" {
   default = []
 }
 
+variable "group_count" {
+    type = number
+}
+
 resource "digitalocean_tag" "tag" {
   name = var.tag_name
 ##  lifecycle {
