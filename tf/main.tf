@@ -26,6 +26,10 @@ variable "group_count" {
     type = number
 }
 
+variable "static_pwd" {
+  type        = string
+}
+
 resource "digitalocean_tag" "tag" {
   name = var.tag_name
 ##  lifecycle {
