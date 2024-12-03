@@ -74,3 +74,11 @@ resource "digitalocean_record" "srv_dns" {
   value    = digitalocean_droplet.clt[count.index].ipv4_address
   ttl    = 60
 }
+
+resource "digitalocean_project" "training" {
+  name        = "training"
+  description = "Projet pour la formation"
+  purpose     = "Web Application"
+  environment = "Development"
+  resources   = digitalocean_droplet.clt[*].urn , digitalocean_droplet.srv[*].urn
+}
