@@ -75,7 +75,7 @@ resource "digitalocean_record" "srv_dns" {
   domain = var.domain_name
   type   = "A"
   name     = "srv-${count.index + 1}"
-  value    = digitalocean_droplet.clt[count.index].ipv4_address
+  value    = digitalocean_droplet.srv[count.index].ipv4_address
   ttl    = 60
 }
 
