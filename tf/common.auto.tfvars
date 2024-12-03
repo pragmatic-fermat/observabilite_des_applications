@@ -15,8 +15,4 @@ domain_name = "monlab.top"
 ssh_keys = [ "2260515" ]
 
 ##
-variable "grp_count" {
-  description = "Nombre de grp"
-  type        = number
-  default     = 1
-}
+##group_count = 1
