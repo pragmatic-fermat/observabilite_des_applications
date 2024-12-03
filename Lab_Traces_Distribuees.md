@@ -29,7 +29,11 @@ git clone https://github.com/microservices-march/platform --branch mm23-metrics-
 cd platform
 ```
 
-Modifier le `docker-compose.yml` ainsi (de façon à retirer le `notifier` et le `messenger`)
+Modifier le `docker-compose.full-demo.yml` ainsi c-a-d de façon à 
+- retirer le service/paragraphe `notifier` et le `messenger`
+- retirer la mention du `depends` dans le service/paragraphe `ingress`
+- bien vérifier que le paragraphe Jaeger est présent
+
 ```
 ---
 services:
@@ -43,7 +47,7 @@ services:
     ports:
       - 8080:8080
     networks:
-      - mm_2023
+      - mm_network
 
   rabbitmq:
     image: rabbitmq:3.11.4-management-alpine
@@ -56,7 +60,7 @@ services:
       - rabbit-data:/var/lib/rabbitmq/
       - rabbit-log:/var/log/rabbitmq/
     networks:
-      - mm_2023
+      - mm_network
 
   jaeger:
     image: jaegertracing/all-in-one:1.41
@@ -68,7 +72,7 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: true
     networks:
-      - mm_2023
+      - mm_network
 
   messenger-db:
     image: postgres:15
@@ -89,7 +93,7 @@ services:
     volumes:
       - messenger-db-data:/var/lib/postgresql/data/pgdata
     networks:
-      - mm_2023
+      - mm_network
 
   notifier-db:
     image: postgres:15
@@ -111,7 +115,7 @@ services:
     volumes:
       - notifier-db-data:/var/lib/postgresql/data/pgdata
     networks:
-      - mm_2023
+      - mm_network
 
 volumes:
   rabbit-data:
@@ -120,14 +124,14 @@ volumes:
   notifier-db-data:
 
 networks:
-  mm_2023:
-    name: mm_2023
+  mm_network:
+    name: mm_network
     driver: bridge
 ```
 
 Puis lancer les containers :
 ```
-docker compose up -d --build
+docker compose -f ./docker-compose.full-demo.yml up -d --build 
 ```
 
 On obtient :
@@ -171,6 +175,13 @@ asdf install
 npm install
 ```
 
+et
+
+```
+cd ~/microservices-march/notifier/app
+npm install
+```
+
 ## Initialisation de la Base de Données
 
 Dans `~/microservices-march/messenger/app` :
@@ -193,24 +204,19 @@ systemctl restart datadog-agent
 
 ## Notifier & Messenger
 
-```
-cd ~/microservices-march/notifier/app
-npm install
-```
-
 Dans une **première** fenêtre lancer le `notifier` (qui écoute sur tcp/5000) :
 ```
 cd ~/microservices-march/notifier/app
 node index.mjs 
 ```
 
-Dans une **seconde** fenêtre, lancer le `messenger`  (qui écoute sur tcp/5000) 
+Dans une **seconde** fenêtre, lancer le `messenger`  (qui écoute sur tcp/4000) 
 ```
 cd ~/microservices-march/messenger/app
 node index.mjs 
 ```
 
-Dans une **troisieme** fenetre, nous allons lancer des requetes de messages :
+Dans une **troisieme** fenêtre, nous allons lancer des requetes de messages :
 
 - créeons une conversation :
 ```
@@ -229,7 +235,15 @@ curl -X POST \
     'http://localhost:4000/conversations/1/messages'
 ```
 
-Le message apparait dans la feneêtre du `notifier`
+Victoire ! Le message apparait dans la fenêtre du `notifier` :
+
+```
+root@clt-1:~/microservices-march/notifier/app# [..]]
+node index.mjs 
+listening on port 5000
+Received new_message:  {"type":"new_message","channel_id":1,"user_id":1,"index":1,"participant_ids":[1,2]}
+Sending notification of new message via sms to 12027621401
+```
 
 ## Auto-instrumentation
 
@@ -240,9 +254,8 @@ Commençons par auto-instrumenter:
 
 Interrompez (Ctrl-C) le service node `messenger`
 
-Puis 
+Puis, toujours dans cette fenêtre (`~/microservices-march/messenger/app`)
 ```
-cd /root/messenger/app
 npm install @opentelemetry/sdk-node@0.36.0 \
             @opentelemetry/auto-instrumentations-node@0.36.4
 ```
@@ -305,11 +318,11 @@ Des spans apparaissent à la console , notamment lors des POST :
 
 ## Jaeger
 
-Visiter  http://IP_clt:16686/search
+Visitons Jaeger sur  http://IP_clt:16686/search
 
 Tout est vide : rien n'est envoyé.
 
-Toujours au niveau de `/root/messenger/app` :
+Toujours au niveau de `/root/messenger/app`, faisons Ctrl^C puis :
 ```
 npm install @opentelemetry/exporter-trace-otlp-http@0.36.0
 ```
@@ -331,14 +344,14 @@ const sdk = new opentelemetry.NodeSDK({
 sdk.start();
 ```
 
-NB : cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces
+**NB **: cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces
 
-Relancer :
+Relancons à nouveau l'appli `messenger` :
 ```
 node --import ./tracing.mjs index.mjs
 ```
 
-Dans Jaeger vous devez voir ceci 
+Lancer à nouveau un POST; dans Jaeger vous devez alors voir ceci 
 
 ![jaeger1](/img/tutorial-OTel-tracing-microservices_ch2-unknown-service.png)
 
@@ -348,14 +361,14 @@ Lancer une requete vers http://localhost:4000/health et retrouvez-là :
 
 Pour donner un meilleur nom à notre application dans le tracing :
 
-Interrompez messenger (Ctr-c)
+Interrompez `messenger` (Ctr-c)
 Puis
 ```
 npm install @opentelemetry/semantic-conventions@1.10.0 \
             @opentelemetry/resources@1.10.0
 ```
 
-Modifier tracing.js ainsi :
+Modifier le fichier `tracing.js` ainsi :
 ```
 //1
 //new
@@ -391,9 +404,9 @@ On obtient alors ceci dans Jaeger
 
 ![jaeger3](/img/tutorial-OTel-tracing-microservices_ch2-traces.png)
 
-Faisons de même pour le notifier 
+Faisons de même pour le `notifier`  
 
-Dans /root/notifier/app :
+Dans sa fenêtre (~/microservices-march/notifier/app), faisons Ctrl-C puis  :
 ```
 npm install @opentelemetry/auto-instrumentations-node@0.36.4 \
   @opentelemetry/exporter-trace-otlp-http@0.36.0 \
@@ -402,7 +415,7 @@ npm install @opentelemetry/auto-instrumentations-node@0.36.4 \
   @opentelemetry/semantic-conventions@1.10.0
 ```
 
-Créeons un fichier tracing.mjs :
+Créeons un fichier `tracing.mjs` :
 ```
 import opentelemetry from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
@@ -433,9 +446,12 @@ On constate dans Jaeger que les traces remontent bien
 
 ## Mise en place d'un Reverse Proxy Nginx
 
-Nous allons reverse-proxyfier nos applis avec nginx
+Nous allons "reverse-proxyfier" nos applis avec nginx
 
-Il faut donc ajouter le service suivant dans notre fichier `~/platform/docker-compose.yaml` :
+Il faut donc corriger le service suivant dans notre fichier `~/platform/docker-compose-full-demo.yaml` sur :
+- le port en écoute publiquement (i.e 8080)
+- la valeur de la variable NGINX_UPSTREAM
+
 ```
   ingress:
     build: ./ingress
@@ -447,10 +463,10 @@ Il faut donc ajouter le service suivant dans notre fichier `~/platform/docker-co
     ports:
       - 8080:80
     networks:
-      - mm_2023
+      - mm_network
 ```
 
-Ce service fait référence à une image Docker locale : on creera le fichier `~/platform/ingress/Dockerfile` avec le contenu suivant
+Ce service fait référence à une image Docker locale définie dans le fichier `~/platform/ingress/Dockerfile` avec le contenu suivant
 ```
 FROM nginx:1.23
 
@@ -465,7 +481,7 @@ upstream messenger_entrypoint {
 }
 
 server {
-  listen 8080;
+  listen 80;
 
   location / {
     proxy_pass http://messenger_entrypoint;
@@ -483,10 +499,9 @@ server {
 }
 ```
 
-Lançons notre nouveau container :
+Reançons le container `ingress` :
 ```
-docker compose create
-docker compose start ingress
+docker compose -f ./docker-compose.full-demo.yml ingress up --force-recreate -d
 ufw allow 8080/tcp
 ufw allow 4000/tcp
 ```
@@ -548,7 +563,7 @@ EXPOSE 8080
 
 STOPSIGNAL SIGQUIT
 ```
-Créeons le fichier `~/platform/ingress/opentelemetry_module.conf` :
+Créeons le fichier `~/microservices-march/platform/ingress/opentelemetry_module.conf` :
 ```
 NginxModuleEnabled ON;
 NginxModuleOtelSpanExporter otlp;
@@ -560,7 +575,13 @@ NginxModuleResolveBackends ON;
 NginxModuleTraceAsError ON;
 ```
 
-Refaire des requetes et observer que le service messenger-lb apparait :
+Re-buildons et relancons le container `ingress` :  
+```
+cd ~/microservices-march/platform/
+docker compose -f ./docker-compose.full-demo.yml up ingress --build --force-recreate -d
+```
+
+Refaire ensuite des requêtes et observer que le service `messenger-lb` apparait :
 
 ![jaeger-nginx](/img/jaeger-nginx.png)
 
