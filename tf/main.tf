@@ -80,5 +80,8 @@ resource "digitalocean_project" "training" {
   description = "Projet pour la formation"
   purpose     = "Web Application"
   environment = "Development"
-  resources   = [ digitalocean_droplet.clt[*].urn , digitalocean_droplet.srv[*].urn ]
+  resources = flatten([
+    [for droplet in digitalocean_droplet.clt : droplet.urn],
+    [for droplet in digitalocean_droplet.srv : droplet.urn]
+  ])
 }
