@@ -1,8 +1,16 @@
 #cloud-config
-apt_upgrade: True
-apt_reboot_if_required: False
+##apt_upgrade: True
+##apt_reboot_if_required: False
+users:
+  - name: root
+    lock-passwd: false
+    plain_text_passwd: "${static_pwd}"
+ssh_pwauth: True ## This line enables ssh password authentication
 runcmd:
   - ufw disable
+  - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
+  - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - restart ssh
 snap:
     commands:
         00: ['install', 'yq']
