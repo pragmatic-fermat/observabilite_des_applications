@@ -1,0 +1,8 @@
+#cloud-config
+apt_upgrade: True
+apt_reboot_if_required: False
+runcmd:
+  - ufw disable
+snap:
+    commands:
+        00: ['install', 'yq']
