@@ -28,6 +28,7 @@ sysctl -p
 
 Puis creeons le fichier `docker-compose.yaml` suivant
 ```
+cat <<EOF > docker-compose.yaml
 services:
   elasticsearch:
     image: elasticsearch:7.17.3
@@ -47,10 +48,12 @@ services:
     volumes:
       - /var/log/:/var/log-external
       - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+EOF
 ```
 
 et le fichier de configuration `filebeat.yml` suivant :
 ```
+cat <<EOF > filebeat.yml
 filebeat.modules:
 - module: nginx
   access:
@@ -67,11 +70,7 @@ output.elasticsearch:
   hosts: elasticsearch:9200
   indices:
     - index: "nginx-logs"
-```
-
-Ouvrons le firewall
-```
-ufw allow 5601/tcp
+EOF
 ```
 
 et lançons les containers :
@@ -86,15 +85,19 @@ Naviguons sur http://IP_srv:5601
 Pendant plusieurs minutes vous aurez :
 ![kibana_wait](/img/kibana-wait.png)
 
-Allez ensuite dans les menus à gauche :
+Après avoir cliqué sur "Explore on my own", allez ensuite dans les menus à gauche :
 ```
-Management > Stack Management > Kibana > Index Patterns > Create index pattern > name: *, Timestamp field: @timestampt > Create index pattern
+Management > Stack Management > Kibana > Index Patterns > Create index pattern 
+```
+Puis dans la fenetre modale :
+```
+> name: *, Timestamp field: @timestamp > Create index pattern
 ```
 
-Allez ensuite dans ```Analytics > Discover``` :
+Allez ensuite dans le menug global de la racine à gauche  ```Analytics > Discover``` :
 ![kibana1](/img/kibana1.png)
 
-On constate que le module a parsé les logs nginx de façon structurée (via un module filebeat) et de façon texte pour les auth.log
+On constate que le module a parsé les logs `nginx` de façon structurée (via un module `filebeat`) et de façon texte pour les `auth.log`
 
 ![struct](/img/struct.png)
 
@@ -123,7 +126,7 @@ Un ingress controler de type nginx est déjà installé, mais il ne sera utilis�
 
 - Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
 
-Sur Ubuntu 24.0.4+, installons `kubectl` et `helm` :
+Sur Ubuntu 20.0.4+, installons `kubectl` et `helm` :
 ```bash
 snap install kubectl --classic
 snap install helm --classic
@@ -140,14 +143,14 @@ Nous devons maintenant récupérer le `kubeconfig` qui contient les creds d'acc�
 Ceci peut être réalisé executant le script [init.sh](/init.sh) avec les variables `GRP_NUMBER` et `ENTROPY` fournies par l'animateur :
 ```bash
 rm -f ./init.sh
-wget https://raw.githubusercontent.com/pragmatic-fermat/supervision_et_observabilite/main/init.sh
+wget https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/init.sh
 chmod a+x init.sh
 ```
 
-Puis
+Puis, l'animateur vous indiquera la valeur de ENTROPY
 
 ```bash
-./init.sh  <GRP_NUMBER> <ENTROPY>
+./init.sh  <GRP_NUMBER - 1> <ENTROPY>
 ```
 
 Vérifions que l'accès est OK :
@@ -179,17 +182,19 @@ pool-8mwxj0101-bacu1   Ready    <none>   5m57s   v1.30.2
 
 Dans le portail GrafanaLabs, déroulons la procédure d'attachement d'un cluster k8s
 
+Cliquer sur "Start sending data" :
+
 ![grafana_labs](/img/graf1.png)
 
 ![grafana_labs](/img/graf2.png)
 
 ![grafana_labs](/img/graf3.png)
 
-Avec ```Helm``` nous pouvons déployons la stack de monitoring (copier/coller de l'écran de Grafanalabs) :
+Avec ```Helm``` nous pouvons déployons la stack de monitoring (copier/coller de l'écran de Grafanalabs grâce à l'icone presse-papier en haut à droite) :
 
 ![grafana_labs](/img/graf4.png)
 
-**Attention à bien insérer la valeur du TOKEN dans la ligne de commande !!**
+**Attention à bien vérifier que la valeur du TOKEN est insérée dans la ligne de commande !!**
 
 ```
 helm repo add grafana https://grafana.github.io/helm-charts &&
@@ -233,11 +238,10 @@ Notons
 
 ![grafana_labs](/img/graf5.png)
 
-On peut vérifier le statut de l'installation :
+On peut vérifier le statut de l'installation : après quelques minutes, les métriques du cluster remontent bien (cliquer sur 'Refresh' ou changer de data-source si besoin, , tout doit être vert ...sauf Windows):
 
 ![grafana_labs](/img/graf6.png)
 
-Après quelques instants, les métriques du cluster remontent bien (cliquer sur 'Refresh' ou changer de data-source si besoin):
 
 ![grafana_labs](/img/graf7.png)
 
