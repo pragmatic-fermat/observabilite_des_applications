@@ -59,6 +59,7 @@ cd /home/prometheus
 Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service `prometheus` :
 
 ```
+cat <<EOF >docker-compose.yml
 services:
   prometheus:
     image: prom/prometheus
@@ -92,6 +93,8 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['prometheus:9090']
+
+EOF
 ```
 
 Notez l'utilisation du nom `prometheus` qui sera résolu localement par Docker.
@@ -136,6 +139,7 @@ chown -R node_exporter:node_exporter /opt/node_exporter
 Créer le fichier ```/etc/systemd/system/node_exporter.service``` :
 
 ```
+cat <<EOF >/etc/systemd/system/node_exporter.service
 [Unit]
 Description=Node Exporter
 Wants=network-online.target
@@ -149,6 +153,8 @@ ExecStart=/opt/node_exporter/node_exporter --collector.systemd
 
 [Install]
 WantedBy=multi-user.target
+
+EOF
 ```
 
 Puis
@@ -201,6 +207,7 @@ Grafana va être executé sous la forme d'un container Docker, sur notre serveur
 Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`) :
 
 ```
+cat <<EOF >docker-compose.yml
 services:
   prometheus:
     image: prom/prometheus
@@ -234,6 +241,8 @@ networks:
 volumes:
   prometheus-data:
   grafana-data:
+
+EOF
 ```
 
 Relancons docker-compose :

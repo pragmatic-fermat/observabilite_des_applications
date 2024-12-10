@@ -8,27 +8,31 @@ NB :  ce Lab est très largement  inspiré d'excellent livre [Cloud-Native Obser
 
 Ce lab peut se dérouler sur l'une des VMs mise à votre disposition.
 
-**PS** : pensez à arreter Datadog éventuellement ('systemctl stop datadog-agent') afin d'eviter un conflit sur le port TCP/5000.
+**PS** : pensez à arreter Datadog éventuellement (`systemctl stop datadog-agent`) afin d'éviter un conflit sur le port TCP/5000.
 
 
 Il s'agit de mettre en place cet environnement :
 ![lab-diag](/img/lab-diag.png)
 
-Récupérer localement sur votre serveur l'arborescence de ['config'](/config/), c-a-d l'ensemble des fichiers de configuration des outils d'observabilité du lab :
+Récupérer localement sur votre serveur l'arborescence de [`config`](/config/), c-a-d l'ensemble des fichiers de configuration des outils d'observabilité du lab :
 ```
-git clone https://github.com/pragmatic-fermat/supervision_et_observabilite.git
-cd supervision_et_observabilite
+git clone https://github.com/pragmatic-fermat/observabilite_des_applications.git
+cd observabilite_des_applications
 ```
 
 
 Créer un fichier `.env` :
 ```
+cat <<EOF >.env
 suff=''
 ##suff='-example1'
+
+EOF
 ```
 
 Creer un fichier `docker-compose.yaml` ainsi :
 ```
+cat <<EOF >docker-compose.yaml
 services:
   shopper:
     image: codeboten/shopper:chapter11${suff}
@@ -156,6 +160,8 @@ services:
 
 networks:
   cloud-native-observability:
+
+EOF
 ```
 
 
@@ -164,11 +170,13 @@ networks:
 Pour passer d'un scenario à l'autre (`example1` à `example5`), il suffit de :
 
 - modifier en conséquence la variable `suff` dans le fichier `.env`
-- relancer `docker compose up -d`
+- relancer `docker compose up -d --force-recreate`
 - diagnostiquer les symptomes et leur cause
 
 Jaeger, Prometheus et Grafana sont accessibles sur leurs ports respectifs (et préconfigurés)
 
-**Attention** : aucune authentification n'est en place.
+**Attention** : aucune authentification n'est en place, les services sont exposés publiquement.
 
-Réglez votre firewall en conséquence....
+---
+
+Indices et solutions : cf https://github.com/PacktPublishing/Cloud-Native-Observability/tree/main/chapter11/scenarios

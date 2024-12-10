@@ -1,8 +1,8 @@
 # Objectifs
 
-- Export de logs (non-)structurés depuis un serveur Linux avec l’agent `Beats` (`FileBeats`) vers `ElasticSearch`/`Kibana`
-- Export de logs depuis un cluster Kubernetes vers `Grafana_Cloud` avec l'agent `Alloy`
-- Visualisation dans `Grafana Loki`
+- [Export de logs (non-)structurés depuis un serveur Linux avec l’agent `Beats` (`FileBeats`) vers `ElasticSearch`/`Kibana`](#export-de-logs-vers-elastic-avec-filebeat)
+- [Export de logs depuis un cluster Kubernetes vers `Grafana_Cloud` avec l'agent `Alloy`](#export-de-logs-depuis-k8s)
+- [Visualisation dans `Grafana Loki`](#visualisation-dans-grafana-loki)
 
 ## Export de logs vers Elastic avec Filebeat
 
@@ -150,7 +150,7 @@ chmod a+x init.sh
 Puis, l'animateur vous indiquera la valeur de ENTROPY
 
 ```bash
-./init.sh  <GRP_NUMBER - 1> <ENTROPY>
+./init.sh  <GRP_NUMBER> <ENTROPY>
 ```
 
 Vérifions que l'accès est OK :
@@ -237,6 +237,8 @@ helm uninstall grafana-k8s-monitoring
 Notons
 
 ![grafana_labs](/img/graf5.png)
+
+## Visualisation dans `Grafana Loki`
 
 On peut vérifier le statut de l'installation : après quelques minutes, les métriques du cluster remontent bien (cliquer sur 'Refresh' ou changer de data-source si besoin, , tout doit être vert ...sauf Windows):
 

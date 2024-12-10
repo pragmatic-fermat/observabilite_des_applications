@@ -36,7 +36,7 @@ resource "digitalocean_tag" "tag" {
 resource "digitalocean_droplet" "clt" {
   count = var.group_count
   image  = var.droplet_image
-  name   = "clt-${count.index + 1}"
+  name   = "clt-${count.index}"
   region = var.region_name
   size   = var.droplet_size
   tags               = [digitalocean_tag.tag.id]
@@ -48,7 +48,7 @@ resource "digitalocean_droplet" "clt" {
 resource "digitalocean_droplet" "srv" {
   count = var.group_count
   image  = var.droplet_image
-  name   = "srv-${count.index + 1}"
+  name   = "srv-${count.index}"
   region = var.region_name
   size   = var.droplet_size
   tags               = [digitalocean_tag.tag.id]
@@ -61,7 +61,7 @@ resource "digitalocean_record" "clt_dns" {
   count    = var.group_count
   domain = var.domain_name
   type   = "A"
-  name     = "clt-${count.index + 1}"
+  name     = "clt-${count.index}"
   value    = digitalocean_droplet.clt[count.index].ipv4_address
   ttl    = 60
 }
@@ -70,7 +70,7 @@ resource "digitalocean_record" "srv_dns" {
   count    = var.group_count
   domain = var.domain_name
   type   = "A"
-  name     = "srv-${count.index + 1}"
+  name     = "srv-${count.index}"
   value    = digitalocean_droplet.srv[count.index].ipv4_address
   ttl    = 60
 }
