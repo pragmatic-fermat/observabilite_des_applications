@@ -34,7 +34,13 @@ Modifier le `docker-compose.full-demo.yml` ainsi c-a-d de façon à
 - retirer la mention du `depends` dans le service/paragraphe `ingress`
 - bien vérifier que le paragraphe Jaeger est présent
 
+Poisitionnons cette variable sur la vraie valeur de l'adresse IP de la VM clt : 
 ```
+CLT_IP=IP_CLT
+```
+Puis
+```
+cat << EOF > docker-compose.yml
 ---
 services:
 
@@ -42,7 +48,7 @@ services:
     build: ./ingress
     container_name: ingress
     environment:
-      - NGINX_UPSTREAM=68.183.74.159
+      - NGINX_UPSTREAM=${CLT_IP}
     # The ingress service is the only service that has ports exposed out.
     ports:
       - 8080:8080
@@ -127,6 +133,7 @@ networks:
   mm_network:
     name: mm_network
     driver: bridge
+EOF
 ```
 
 Puis lancer les containers :
