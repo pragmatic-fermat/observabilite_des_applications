@@ -329,7 +329,7 @@ Sur `clt`, nous allons instrumenter  une application API écrite en python avec 
 apt install -y python3-prometheus-client python3-flask
 ```
 
-Puis copier le code suivant dans l'invite `python3` (ne pas oublier de faire 2 retours chariots à la fin) :
+Puis copier le code suivant dans l'invite `python3` (ne pas oublier de faire **2 retours chariots** à la fin) :
 
 ```
 from flask import Flask, request, render_template_string
@@ -389,6 +389,11 @@ puis le site http://IP_clt:8000  (les métriques Prometheus)
 
 ![app-instr](img/app-instr.png)
 
+## Cleanup
+Arrêter le programme python (Ctrl-C) puis le reste :
+```
+docker compose down
+```
 
 # Supervision avec Datadog
 
