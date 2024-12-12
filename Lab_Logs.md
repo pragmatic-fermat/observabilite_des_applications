@@ -26,6 +26,12 @@ echo "vm.max_map_count=262144" >> /etc/sysctl.conf
 sysctl -p
 ```
 
+Changeons de répertoire :
+```
+mkdir -p /home/elastic
+cd /home/elastic
+```
+
 Puis creeons le fichier `docker-compose.yaml` suivant
 ```
 cat <<EOF > docker-compose.yaml
