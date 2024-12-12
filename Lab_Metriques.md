@@ -176,10 +176,17 @@ Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics
 
 **Sur le serveur Prometheus**, ajouter en fin de fichier ```/home/prometheus/prometheus.yml```ceci  :
 
+Tout d'abord créez la variable CLT avec la vraie valeur de IP_clt :
 ```
+CLT=IP_clt```
+
+Puis lancer la commande suivante qui ajoute au fichier en interpolant la variable 
+```
+cat << EOF >> /home/prometheus/prometheus.yml
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['IP_clt:9100']
+EOF
 ```
 
 **NB** : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
