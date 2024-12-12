@@ -84,9 +84,10 @@ volumes:
 EOF
 ```
 
-Créeons le fichier de configuration  ```/home/prometheus/prometheus.yml``` :
+Créeons le fichier de configuration  ```/home/prometheus/prometheus.yml``` en tapant cette ligne de commande  :
 
 ```
+cat <<EOF >/home/prometheus/prometheus.yml
 global:
   scrape_interval: 10s
 
