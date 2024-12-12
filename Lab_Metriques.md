@@ -56,7 +56,7 @@ mkdir /home/prometheus
 cd /home/prometheus
 ```
 
-Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service `prometheus` :
+Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service `prometheus` en copiant collant directement cette commande dans le shell :
 
 ```
 cat <<EOF >docker-compose.yml
@@ -81,6 +81,7 @@ networks:
 
 volumes:
   prometheus-data:
+EOF
 ```
 
 Créeons le fichier de configuration  ```/home/prometheus/prometheus.yml``` :
