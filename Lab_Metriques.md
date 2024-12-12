@@ -458,7 +458,7 @@ Enfin, importons le fichier de base de données et configurons le mdp root mysql
 
 Sur le serveur supervisé (i.e `clt`):
 ```
-cd /etc/datadog/conf.d/mysql.d
+cd /etc/datadog-agent/conf.d/mysql.d
 ```
 
 Renommer le fichier `conf.yaml.sample` en `conf.yaml` et injecter (en faisant attention aux indentations) quelque chose comme ceci:
