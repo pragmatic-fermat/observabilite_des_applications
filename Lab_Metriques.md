@@ -169,11 +169,6 @@ systemctl start node_exporter
 
 **NB** : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
 
-Si nécessaire, on pense à ouvrir le firewall pour le flux TCP/9100 entrant :
-```
-ufw allow 9100/tcp
-```
-
 Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics 
 
 
