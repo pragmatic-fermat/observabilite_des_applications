@@ -287,6 +287,7 @@ EOF
 
 Relancons le service instrumenté 
 ```
+npm run refresh-db
 node --import ./tracing.mjs index.mjs
 ```
 Des spans apparaissent à la console , notamment lors des POST :
@@ -338,6 +339,7 @@ npm install @opentelemetry/exporter-trace-otlp-http@0.36.0
 
 Modifier ainsi `tracing.mjs` pour inclure la librairie et l'export :
 ```
+cat << EOF >tracing.mjs
 //1
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import opentelemetry from "@opentelemetry/sdk-node";
@@ -351,12 +353,14 @@ const sdk = new opentelemetry.NodeSDK({
 
 //3
 sdk.start();
+EOF
 ```
 
-**NB **: cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces
+**NB** : cela suppose que le collecteur de traces se trouve par défaut sur : http://localhost:4318/v1/traces
 
 Relancons à nouveau l'appli `messenger` :
 ```
+npm run refresh-db 
 node --import ./tracing.mjs index.mjs
 ```
 
@@ -379,6 +383,7 @@ npm install @opentelemetry/semantic-conventions@1.10.0 \
 
 Modifier le fichier `tracing.js` ainsi :
 ```
+cat << EOF >tracing.mjs
 //1
 //new
 import { Resource } from "@opentelemetry/resources";import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
@@ -402,6 +407,7 @@ const sdk = new opentelemetry.NodeSDK({
 
 //3
 sdk.start();
+EOF
 ```
 
 Puis relancer
