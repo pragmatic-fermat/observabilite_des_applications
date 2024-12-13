@@ -35,19 +35,24 @@ host my-otel-demo.mydomain.com
 kubectl get svc -n ingress-nginx | grep LoadBalancer
 ```
 
-Dans l'interface Grafana Cloud, créer un nouveau connecteur 
+Dans l'interface Grafana Cloud, créer un nouveau connecteur (on peut laisser le Service Namespace et le Service Instance ID vide)
 
 ![loki](/img/loki0.png)
 
 ![loki](/img/loki1.png)
+
+On crée un répertoire dédié :
+```
+mkdir /home/otel-demo
+cd /home/otel-demo
+FQDN="my-otel-demo.mydomain.com"
+```
 
 En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contiendra notamment la configuration du collecteur `opentelemetry` embarqué dans l'application de demo.
 
 Cela pourrait ressembler à cela :
 
 ```
-mkdir /home/otel-demo
-cd /home/otel-demo
 cat << EOF > otel-values.yaml
 components:
 
@@ -61,7 +66,7 @@ components:
       annotations: {}
       hosts:
       ## a personnaliser
-        - host: otel-demo.my-domain.com
+        - host: $FQDN
           paths:
             - path: /
               pathType: Prefix
@@ -72,7 +77,7 @@ components:
     envOverrides:
       - name: PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
         ## a personnaliser
-        value: http://otel-demo.my-domain.com/otlp-http/v1/traces
+        value: http://$FQDN/otlp-http/v1/traces
 
   loadgenerator:
   ## si true, quota exhaustion chez grafana_cloud
@@ -101,7 +106,7 @@ opentelemetry-collector:
       annotations: {}
       hosts:
       ## a personnaliser
-        - host: otel-demo.my-domain.com
+        - host: $FQDN
           paths:
             - path: /otlp-httpd/
               pathType: Prefix
@@ -112,9 +117,9 @@ opentelemetry-collector:
     extensions:
       basicauth/grafana_cloud:
         client_auth:
-        ## a personnaliser
+        ## !!! a personnaliser, token à copier depuis GrafanaLabs
           username: "1009912"
-          password: "glc_eyJvIjXXX"
+          password: "glc_eyJvIj.....XXX"
 
     receivers:
       otlp:
@@ -129,7 +134,7 @@ opentelemetry-collector:
 
     exporters:
       otlphttp/grafana_cloud:
-        ## a personnaliser
+        ## a personnaliser eventuellement....
         endpoint: "https://otlp-gateway-prod-eu-west-2.grafana.net/otlp"
         auth:
           authenticator: basicauth/grafana_cloud
