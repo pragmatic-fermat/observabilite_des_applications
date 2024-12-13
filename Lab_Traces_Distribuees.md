@@ -40,7 +40,7 @@ CLT_IP=IP_CLT
 ```
 Puis
 ```
-cat << EOF > docker-compose.yml
+cat << EOF > docker-compose.full-demo.yml
 ---
 services:
 
