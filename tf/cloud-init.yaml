@@ -14,5 +14,5 @@ runcmd:
 snap:
     commands:
         00: ['install', 'yq']
-        00: ['install', 'kubectl', '--classic']
-        00: ['install', 'helm', '--classic']
+        01: ['install', 'kubectl', '--classic']
+        02: ['install', 'helm', '--classic']
