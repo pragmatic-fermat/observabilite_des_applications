@@ -195,7 +195,7 @@ Dans `~/microservices-march/messenger/app` :
 ```
 npm run refresh-db
 ```
-Dans `~/microservices-march//notifier/app` :
+Dans `~/microservices-march/notifier/app` :
 ```
 npm run refresh-db
 ```
