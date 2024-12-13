@@ -29,7 +29,13 @@ nginx   k8s.io/ingress-nginx   <none>       82m
 ```
 Un FQDN DNS est également attribué à l'IP publique de cet ingress, appellons-le `my-otel-demo.mydomain.com` dans le reste de ce document.
 
-Dans l'interface Grafana, créer un nouveau connecteur 
+Les 2 IP publiques doivent concorder :
+```
+host my-otel-demo.mydomain.com
+kubectl get svc -n ingress-nginx | grep LoadBalancer
+```
+
+Dans l'interface Grafana Cloud, créer un nouveau connecteur 
 
 ![loki](/img/loki0.png)
 
@@ -40,6 +46,9 @@ En se basant sur sur la [documentation](https://github.com/open-telemetry/opente
 Cela pourrait ressembler à cela :
 
 ```
+mkdir /home/otel-demo
+cd /home/otel-demo
+cat << EOF > otel-values.yaml
 components:
 
   frontendProxy:
@@ -144,6 +153,7 @@ opentelemetry-collector:
           receivers: [otlp]
           processors: [batch]
           exporters: [otlphttp/grafana_cloud, debug]
+EOF
 ```
 
 Puis
