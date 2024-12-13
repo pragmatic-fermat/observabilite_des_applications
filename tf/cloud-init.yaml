@@ -4,7 +4,7 @@
 users:
   - name: root
     lock-passwd: false
-    plain_text_passwd: "training."
+    plain_text_passwd: "TrainingDay"
 ssh_pwauth: True ## This line enables ssh password authentication
 runcmd:
   - ufw disable
@@ -14,3 +14,5 @@ runcmd:
 snap:
     commands:
         00: ['install', 'yq']
+        00: ['install', 'kubectl', '--classic']
+        00: ['install', 'helm', '--classic']
