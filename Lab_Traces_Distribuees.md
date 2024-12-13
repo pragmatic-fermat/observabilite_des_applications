@@ -269,6 +269,7 @@ npm install @opentelemetry/sdk-node@0.36.0 \
 
 Créer un fichier `tracing.mjs` qui contient :
 ```
+cat << EOF >tracing.mjs
 //1
 import opentelemetry from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
@@ -281,6 +282,7 @@ const sdk = new opentelemetry.NodeSDK({
 
 //3
 sdk.start();
+EOF
 ```
 
 Relancons le service instrumenté 
