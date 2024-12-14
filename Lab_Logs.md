@@ -130,13 +130,7 @@ Pré-requis :
 - Obtenir un accès à un cluster k8s (fourni par l'animateur). 
 Un ingress controler de type nginx est déjà installé, mais il ne sera utilisé que dans le [Lab Demo Otel](/Lab_OpenTelemetry_Demo.md)
 
-- Avoir les outils ```kubectl``` et ```helm``` installés (par ex via Github CodeSpaces)
-
-Sur Ubuntu 20.0.4+, installons `kubectl` et `helm` :
-```bash
-snap install kubectl --classic
-snap install helm --classic
-```
+- Avoir les outils ```kubectl``` et ```helm``` installés 
 
 Testons :
 ```bash
@@ -235,7 +229,8 @@ NAMESPACE: default
 STATUS: deployed
 REVISION: 1
 ```
-En cas d'erreur, vous pouvez faire 
+En cas d'erreur, vous pouvez faire
+
 ```bash
 helm uninstall grafana-k8s-monitoring
 ```
@@ -259,11 +254,10 @@ On peut ensuite explorer les métriques et les logs :
 
 ![grafana_labs](/img/graf9.png)
 
-Pour note, les agents d'observabilité ```Alloy``` et ```NodeExporter``` sous déployés sous la forme de DaemonSet
+Pour note, les agents d'observabilité ```Alloy``` et ```NodeExporter``` sous déployés sous la forme de `DaemonSet`
 
 ```
  kubectl get ds        
-+ kubectl get ds
 NAME                                              DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
 grafana-k8s-monitoring-alloy-logs                 2         2         2       2            2           kubernetes.io/os=linux   67m
 grafana-k8s-monitoring-prometheus-node-exporter   2         2         2       2            2           kubernetes.io/os=linux   67m
@@ -273,4 +267,4 @@ kepler                                            2         2         2       2 
 ## Cleanup
 ```
 helm delete grafana-k8s-monitoring
- ```
+```

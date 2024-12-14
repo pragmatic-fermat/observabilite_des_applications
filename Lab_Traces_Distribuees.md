@@ -18,25 +18,25 @@ PS : Ce Lab est librement inspiré de cet [article Nginx](https://www.f5.com/com
 
 Sur la VM `clt` :
 ```
-mkdir ~/microservices-march
-cd ~/microservices-march
-git clone https://github.com/microservices-march/messenger --branch mm23-metrics-start
-git clone https://github.com/microservices-march/notifier --branch mm23-metrics-start
-git clone https://github.com/microservices-march/platform --branch mm23-metrics-start
+mkdir /home/traces-distrib
+cd /home/traces-distrib
+git clone https://github.com/pragmatic-fermat/messenger --branch mm23-metrics-start
+git clone https://github.com/pragmatic-fermat/notifier --branch mm23-metrics-start
+git clone https://github.com/pragmatic-fermat/platform --branch mm23-metrics-start
 ```
 
 ```
-cd platform
+cd home/traces-distrib/platform
 ```
 
-Modifier le `docker-compose.full-demo.yml` ainsi c-a-d de façon à 
-- retirer le service/paragraphe `notifier` et le `messenger`
+Nous allons modifier le `docker-compose.full-demo.yml` ainsi c-a-d de façon à 
+- retirer le service/paragraphe `notifier` et le `messenger` ; on les lancera à la main
 - retirer la mention du `depends` dans le service/paragraphe `ingress`
 - bien vérifier que le paragraphe Jaeger est présent
 
-Poisitionnons cette variable sur la vraie valeur de l'adresse IP de la VM clt : 
+Poisitionnons cette variable sur la vraie valeur de l'adresse IP de la VM `clt` : 
 ```
-CLT_IP=IP_CLT
+CLT=clt_FQDN
 ```
 Puis
 ```
@@ -48,7 +48,7 @@ services:
     build: ./ingress
     container_name: ingress
     environment:
-      - NGINX_UPSTREAM=${CLT_IP}
+      - NGINX_UPSTREAM=${CLT}
     # The ingress service is the only service that has ports exposed out.
     ports:
       - 8080:8080
@@ -175,7 +175,7 @@ bash
 ## Installation de Node en v19
 
 ```
-cd ~/microservices-march/messenger/app
+cd /home/traces-distrib/messenger/app
 apt-get install -y dirmngr gpg curl gawk
 asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 asdf install
@@ -185,17 +185,17 @@ npm install
 et
 
 ```
-cd ~/microservices-march/notifier/app
+cd /home/traces-distrib/notifier/app
 npm install
 ```
 
 ## Initialisation de la Base de Données
 
-Dans `~/microservices-march/messenger/app` :
+Dans `/home/traces-distrib/messenger/app` :
 ```
 npm run refresh-db
 ```
-Dans `~/microservices-march/notifier/app` :
+Dans `/home/traces-distrib/notifier/app` :
 ```
 npm run refresh-db
 ```
@@ -213,13 +213,13 @@ systemctl restart datadog-agent
 
 Dans une **première** fenêtre lancer le `notifier` (qui écoute sur tcp/5000) :
 ```
-cd ~/microservices-march/notifier/app
+cd /home/traces-distrib/notifier/app
 node index.mjs 
 ```
 
 Dans une **seconde** fenêtre, lancer le `messenger`  (qui écoute sur tcp/4000) 
 ```
-cd ~/microservices-march/messenger/app
+cd /home/traces-distrib/messenger/app
 node index.mjs 
 ```
 
@@ -245,7 +245,7 @@ curl -X POST \
 Victoire ! Le message apparait dans la fenêtre du `notifier` :
 
 ```
-root@clt-1:~/microservices-march/notifier/app# [..]]
+root@clt-1:/home/traces-distrib/notifier/app# [..]]
 node index.mjs 
 listening on port 5000
 Received new_message:  {"type":"new_message","channel_id":1,"user_id":1,"index":1,"participant_ids":[1,2]}
@@ -261,7 +261,7 @@ Commençons par auto-instrumenter:
 
 Interrompez (Ctrl-C) le service node `messenger`
 
-Puis, toujours dans cette fenêtre (`~/microservices-march/messenger/app`)
+Puis, toujours dans cette fenêtre (`/home/traces-distrib/messenger/app`)
 ```
 npm install @opentelemetry/sdk-node@0.36.0 \
             @opentelemetry/auto-instrumentations-node@0.36.4
@@ -328,11 +328,11 @@ Des spans apparaissent à la console , notamment lors des POST :
 
 ## Jaeger
 
-Visitons Jaeger sur  http://IP_clt:16686/search
+Visitons Jaeger sur  http://clt_FQDN:16686/search
 
 Tout est vide : rien n'est envoyé.
 
-Toujours au niveau de `/root/messenger/app`, faisons Ctrl^C puis :
+Toujours au niveau de `/home/traces-distrib/messenger/app`, faisons Ctrl^C puis :
 ```
 npm install @opentelemetry/exporter-trace-otlp-http@0.36.0
 ```
@@ -421,7 +421,7 @@ On obtient alors ceci dans Jaeger
 
 Faisons de même pour le `notifier`  
 
-Dans sa fenêtre (~/microservices-march/notifier/app), faisons Ctrl-C puis  :
+Dans sa fenêtre (/home/traces-distrib/notifier/app), faisons Ctrl-C puis  :
 ```
 npm install @opentelemetry/auto-instrumentations-node@0.36.4 \
   @opentelemetry/exporter-trace-otlp-http@0.36.0 \
@@ -463,7 +463,7 @@ On constate dans Jaeger que les traces remontent bien
 
 Nous allons "reverse-proxyfier" nos applis avec nginx
 
-Il faut donc corriger le service suivant dans notre fichier `~/platform/docker-compose-full-demo.yaml` sur :
+Il faut donc corriger le service suivant dans notre fichier `/home/traces-distrib/platform/docker-compose-full-demo.yaml` sur :
 - le port en écoute publiquement (i.e 8080)
 - la valeur de la variable NGINX_UPSTREAM
 
@@ -481,7 +481,7 @@ Il faut donc corriger le service suivant dans notre fichier `~/platform/docker-c
       - mm_network
 ```
 
-Ce service fait référence à une image Docker locale définie dans le fichier `~/platform/ingress/Dockerfile` avec le contenu suivant
+Ce service fait référence à une image Docker locale définie dans le fichier `/home/traces-distrib/platform/ingress/Dockerfile` avec le contenu suivant
 ```
 FROM nginx:1.23
 
@@ -489,7 +489,7 @@ ENV NGINX_UPSTREAM=localhost
 
 COPY default.conf.template /etc/nginx/templates/default.conf.template
 ```
-et le fichier `~/platform/ingress/default.conf.template` avec le contenu suivant
+et le fichier `/home/traces-distrib/platform/ingress/default.conf.template` avec le contenu suivant
 ```
 upstream messenger_entrypoint {
   server ${NGINX_UPSTREAM}:4000;
@@ -517,8 +517,6 @@ server {
 Reançons le container `ingress` :
 ```
 docker compose -f ./docker-compose.full-demo.yml ingress up --force-recreate -d
-ufw allow 8080/tcp
-ufw allow 4000/tcp
 ```
 
 On rejoue les mêmes tests, mais cette fois-ci via Nginx :
@@ -545,7 +543,7 @@ curl -X POST \
 Dans Jaeger, nous voyons toujours les traces, mais aucune mention de Nginx.
 Activons OTel dans Nginx !
 
-Retournons dans `~/platform/ingress`, et changeons ainsi le `Dockerfile` :
+Retournons dans `/home/traces-distrib/platform/ingress`, et changeons ainsi le `Dockerfile` :
 
 ```
 FROM --platform=amd64 nginx:1.23.1
@@ -578,7 +576,7 @@ EXPOSE 8080
 
 STOPSIGNAL SIGQUIT
 ```
-Créeons le fichier `~/microservices-march/platform/ingress/opentelemetry_module.conf` :
+Créeons le fichier `/home/traces-distrib/platform/ingress/opentelemetry_module.conf` :
 ```
 NginxModuleEnabled ON;
 NginxModuleOtelSpanExporter otlp;
@@ -592,7 +590,7 @@ NginxModuleTraceAsError ON;
 
 Re-buildons et relancons le container `ingress` :  
 ```
-cd ~/microservices-march/platform/
+cd /home/traces-distrib/platform/
 docker compose -f ./docker-compose.full-demo.yml up ingress --build --force-recreate -d
 ```
 
@@ -607,8 +605,14 @@ A vous de jouer pour activer le tracing avec Datadog de l'application [Librespee
 
 Quelques pistes pour réaliser cela sur la VM `clt` :
 
+- créer un répertoire `/home/librespeed`
+```
+mkdir /home/librespeed
+```
+
 - créer un `docker-compose.yaml` de ce type pour visiter l'application sur tcp/81 et envoyer la telemetrie vers l'agant DD qui tourne déjà sur le host
 ```
+cat << EOF > /home/librespeed/docker-compose.yaml
 services:
   speedtest:
     container_name: speedtest
@@ -634,14 +638,19 @@ services:
       DD_TRACE_AGENT_PORT: 8126
     ports:
       - "81:80" # webport mapping (host:container)
+EOF
 ```
 
 - creer un `Dockerfile` de ce type pour auto-instrumenter l'application
 ```
+cat << EOF > /home/librespeed/Dockerfile
+
 FROM ghcr.io/librespeed/speedtest:latest
 
 ADD https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php /tmp
 RUN php /tmp/datadog-setup.php --php-bin=all --enable-profiling
+
+EOF
 ```
 
 
