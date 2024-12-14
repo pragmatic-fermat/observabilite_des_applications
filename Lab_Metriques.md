@@ -97,9 +97,8 @@ EOF
 Notez l'utilisation du nom `prometheus` qui sera résolu localement par Docker.
 
 Lançons le serveur :
-```
-docker compose create
-docker compose up -d
+```bash
+docker compose up -d --force-recreate
 ```
 
 Naviguez sur la page Prometheus : `http://srv_FQDN:9090` , et explorez les métriques.
@@ -125,7 +124,7 @@ Sur l'autre VM (appellons-la `clt`), installons `NodeExporter` :
 
 Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192) , que nous reproduisons ci-dessous :
 
-```
+```bash
 useradd --no-create-home --shell /bin/false node_exporter
 wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
 tar xvf node_exporter-0.18.1.linux-amd64.tar.gz
@@ -156,7 +155,7 @@ EOF
 
 Puis mettons en place le service
 
-```
+```bash
 systemctl enable node_exporter
 systemctl daemon-reload
 systemctl start node_exporter
@@ -171,13 +170,13 @@ Naviguez sur la page NodeExporter : `http://clt_FQDN:9100/metrics`
 
 Tout d'abord créez la variable CLT avec la véritable valeur de `clt_FQDN` :
 
-```
+```bash
 CLT=clt_FQDN
 ```
 
 **Sur le serveur Prometheus, c-a-d `srv`**, grâce à la commande suivante, ajoutons (avec interpolation) en fin de fichier ```/home/prometheus/prometheus.yml``` ceci  :
 
-```
+```bash
 cat << EOF >> /home/prometheus/prometheus.yml
   - job_name: 'node-exporter'
     static_configs:
@@ -187,7 +186,7 @@ EOF
 
 Relancer le service Prometheus :
 
-```
+```bash
 cd /home/prometheus
 docker compose restart
 ```
@@ -202,7 +201,7 @@ Grafana va être executé sous la forme d'un container Docker, sur notre serveur
 
 Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`), grâce à la commande ci-dessous :
 
-```
+```bash
 cat <<EOF >docker-compose.yml
 services:
   prometheus:
@@ -242,8 +241,9 @@ EOF
 ```
 
 Relancons les containers grâce à docker-compose :
-```
-docker compose up -d -force-recreate
+
+```bash
+docker compose up -d --force-recreate
 ```
 
 Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `admin/admin` : `http://srv_FQDN:3000`
@@ -270,12 +270,13 @@ Naviguer dans la section des Dashboard....
 
 Sur le serveur supervisé (`clt`) :
 
-```
+```bash
 mkdir /home/textfile
 ```
 
 Configurez le service NodeExporter pour prendre en compte ce répertoire  (modification la ligne suivante dans `/etc/systemd/system/node_exporter.service`) grâce à cette commande :
-```
+
+```bash
 cat <<EOF >/etc/systemd/system/node_exporter.service
 [Unit]
 Description=Node Exporter
@@ -296,7 +297,7 @@ EOF
 
 
 Puis relançons NodeExporter :
-```
+```bash
 systemctl daemon-reload
 systemctl restart node_exporter.service  
 ```
@@ -330,15 +331,10 @@ Notez la mention de ```spunge``` afin d'écrire atomiquement le fichier ```textf
 ## Instrumenter le Code pour Prometheus
 
 Sur `clt`, nous allons instrumenter  une application API écrite en python avec flask.
-Lançons l'invite de commande :
 
-```
-python3
-```
+Le code de notre application est le suivant :
 
-Puis copier le code suivant dans l'invite `python3` (ne pas oublier de faire **2 retours chariots** à la fin) :
-
-```
+```python
 from flask import Flask, request, render_template_string
 from prometheus_client import start_http_server, Counter, Histogram, generate_latest
 from prometheus_client.core import CollectorRegistry
@@ -388,6 +384,13 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
+Importons ce script puis lançons-le :
+```bash
+wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/data/myapp.py" -o /home/myapp.py
+python3 /home/myapp.py
+```
+
+
 Visiter le site web  http://clt_FQDN:5000 (l'application)
 
 ![app-inst-metr](img/app-instr-met.png)
@@ -398,8 +401,9 @@ puis le site http://clt_FQDN:8000  (les métriques Prometheus)
 
 ## Cleanup
 
-Arrêter le programme python (Ctrl-C) puis le reste :
-```
+Arrêter le programme python (Ctrl-C) puis le reste des containers (i.e Prometheus et Grafana) ainsi :
+
+```bash
 docker compose down
 ```
 
@@ -427,14 +431,14 @@ Supposons que nous souhaitions connaitre le nombre de lignes dans les tables d'u
 
 Sur notre serveur `clt`, connectons nous à la base de données mariadb (pré-installée, mot de passe vide) :
 
-```
+```bash
 mysql -u root
 mysql>
 ```
 
 Importons le fichier de base de données qui se trouve (déja) dans /home/mysqlsampledatabase.sql et configurons le mot de passe root mysql
 ```
-> source /home/mysqlsampledatabase.sql;
+> source /home/mysqlsampledatabase.sql ;
 > show databases;
 +--------------------+
 | Database           |
@@ -453,13 +457,14 @@ Importons le fichier de base de données qui se trouve (déja) dans /home/mysqls
 ### Configuration de l'agent Datadog
 
 Sur le serveur supervisé (i.e `clt`):
+
 ```
 cd /etc/datadog-agent/conf.d/mysql.d
 ```
 
-Renommer le fichier `conf.yaml.sample` en `conf.yaml` et injecter (en faisant attention aux indentations) quelque chose comme ceci:
+Dans le fichier `conf.yaml` nous voudrions injecter (en faisant attention aux indentations) quelque chose comme ceci:
 
-```
+```yaml
 init_config:
 instances:
   - host: localhost
@@ -485,12 +490,21 @@ instances:
            type: gauge
 ```
 
+Cette commande fera alors l'affaire :
+
+```bash
+rm -f conf.yaml.sample
+wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/config/datadog/config.yml" -o conf.yaml
+```
+
+
 Relancer l'agent datadog et vérifier que la plugin SQL est sans erreur :
 
-```
+```bash
 systemctl restart datadog-agent
 ```
 Lancer plusieurs fois l'outil de diagnostic jusqu'à ce que le paragraphe MySQL soit ok :
+
 ```
 # datadog-agent status | grep -A10 -i mysql 
     mysql (12.5.1)
@@ -526,7 +540,7 @@ Ensuite aller dans Datadog :
 
 ![dd-graph1](img/dd-graph1.png)
 
-- puis construisez un TopList qui montre le nombre de lignes par table dans notre database 'classimodels' :
+- puis construisez une TopList qui montre le nombre de lignes par table dans notre database 'classimodels' :
 
 ![dd-graph2](img/dd-graph2.png)
 
