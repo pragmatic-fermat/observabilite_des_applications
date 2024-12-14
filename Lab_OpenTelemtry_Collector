@@ -1,0 +1,69 @@
+
+WORK IN PROGRESS
+
+wget https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.115.1/otelcol-contrib_0.115.1_linux_amd64.deb
+
+dpkg -i otelcol-contrib_0.115.1_linux_amd64.deb 
+
+# cat /etc/otelcol-contrib/config.yaml
+# receivers configure how data gets into the Collector.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      # CPU utilization metrics
+      cpu:
+      # Disk I/O metrics
+      disk:
+      # File System utilization metrics
+      filesystem:
+      # CPU load metrics
+      load:
+      # Memory utilization metrics
+      memory:
+      # Network interface I/O metrics & TCP connection metrics
+      network:
+      # Paging/Swap space utilization and I/O metrics
+      paging:
+
+# processors specify what happens with the received data.
+processors:
+  resourcedetection:
+    detectors: [env, system]
+  cumulativetodelta:
+  batch:
+    send_batch_size: 10000
+    timeout: 10s
+
+# exporters configure how to send processed data to one or more backends.
+exporters:
+  otlp/uptrace:
+    endpoint: "api.honeycomb.io:443"
+    headers:
+      "x-honeycomb-team": "XXX"
+
+# service.pipelines pull the configured receivers, processors, and exporters together into
+# pipelines that process data.
+#
+# receivers, processors, and exporters that are not used in pipelines are silently ignored.
+service:
+  telemetry:
+    logs:
+      level: 'debug'
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/uptrace]
+    metrics:
+      receivers: [otlp,hostmetrics]
+      processors: [cumulativetodelta, batch, resourcedetection]
+      exporters: [otlp/uptrace]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/uptrace]
