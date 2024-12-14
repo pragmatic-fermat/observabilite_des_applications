@@ -4,6 +4,8 @@
 packages:
   - python3-prometheus-client
   - python3-flask
+  - mariadb-server
+  - unzip
 users:
   - name: root
     lock-passwd: false
