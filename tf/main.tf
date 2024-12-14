@@ -42,7 +42,7 @@ resource "digitalocean_droplet" "clt" {
   tags               = [digitalocean_tag.tag.id]
   monitoring         = "true"
   ssh_keys           = var.ssh_keys
-  user_data = "${file("cloud-init.yaml")}"
+  user_data = "${file("cloud-init-clt.yaml")}"
 }
 
 resource "digitalocean_droplet" "srv" {
@@ -54,7 +54,7 @@ resource "digitalocean_droplet" "srv" {
   tags               = [digitalocean_tag.tag.id]
   monitoring         = "true"
   ssh_keys           = var.ssh_keys
-  user_data = "${file("cloud-init.yaml")}"
+  user_data = "${file("cloud-init-srv.yaml")}"
 }
 
 resource "digitalocean_record" "clt_dns" {
@@ -77,7 +77,7 @@ resource "digitalocean_record" "srv_dns" {
 
 resource "digitalocean_project" "training" {
   name        = "training"
-  description = "Projet pour la formation"
+  description = "Projet"
   purpose     = "Web Application"
   environment = "Development"
   resources = flatten([
