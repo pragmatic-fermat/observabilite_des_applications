@@ -1,1 +1,23 @@
-test
+init_config:
+instances:
+  - host: localhost
+    dbm: true
+    username: root
+    password: MyN3wP4ssw0rd
+    port: 3306
+
+    custom_queries:
+      - query: SELECT COUNT(*) FROM classicmodels.customers
+        columns:
+         - name: classicmodels.customers
+           type: gauge
+      - query: SELECT COUNT(*) FROM classicmodels.employees
+        columns:
+         - name: classicmodels.employees
+           type: gauge
+      - query: SELECT TABLE_NAME, TABLE_ROWS FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'classicmodels'
+        columns:
+         - name: classicmodels.table_name
+           type: tag
+         - name: classicmodels.table_rows
+           type: gauge
