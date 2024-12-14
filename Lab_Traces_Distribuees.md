@@ -26,7 +26,7 @@ git clone https://github.com/pragmatic-fermat/platform --branch mm23-metrics-sta
 ```
 
 ```
-cd home/traces-distrib/platform
+cd platform
 ```
 
 Nous allons modifier le `docker-compose.full-demo.yml` ainsi c-a-d de façon à 
@@ -51,7 +51,7 @@ services:
       - NGINX_UPSTREAM=${CLT}
     # The ingress service is the only service that has ports exposed out.
     ports:
-      - 8080:8080
+      - 8080:80
     networks:
       - mm_network
 
@@ -152,32 +152,10 @@ On obtient :
  ✔ Container ingress       Started                                                                                         0.8s 
 ```
 
-## Installons asdf (installateur Node)
-```
-cd /root
-git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-```
-
-Ajoutons 2 lignes en fin de `/root/.bashrc`
-
-```
-cat <<EOF >> /root/.bashrc
-. "$HOME/.asdf/asdf.sh"
-. "$HOME/.asdf/completions/asdf.bash"
-EOF
-```
-
-Relancez le shell :
-```
-bash
-```
-
-## Installation de Node en v19
+## Installation de Node en v19 (via asdf)
 
 ```
 cd /home/traces-distrib/messenger/app
-apt-get install -y dirmngr gpg curl gawk
-asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 asdf install
 npm install
 ```
@@ -200,12 +178,13 @@ Dans `/home/traces-distrib/notifier/app` :
 npm run refresh-db
 ```
 
-Notre appli écoute sur tcp/5000, comme un des agents de Datadog : conflit !
+Notre appli va écouter sur tcp/5000, comme un des agents de Datadog : conflit !
 Modifions ce dernier :
 
-Dans  `/etc/datadog-agent/datadog.yaml` , modifier la variable `expvar` de 5000 à 5999 (par exemple) et relancer datadog ainsi :
+Dans  `/etc/datadog-agent/datadog.yaml` , modifier la variable `expvar` de 5000 à 5999 (par exemple) ainsi :
 
 ```
+sed -i "s/\# expvar_port: 5000/expvar_port: 5999/" /etc/datadog-agent/datadog.yaml
 systemctl restart datadog-agent
 ```
 
@@ -330,7 +309,8 @@ Des spans apparaissent à la console , notamment lors des POST :
 
 Visitons Jaeger sur  http://clt_FQDN:16686/search
 
-Tout est vide : rien n'est envoyé.
+Tout est vide : rien n'est envoyé !! 
+C'est normal, nous devons inclure le package d'export...
 
 Toujours au niveau de `/home/traces-distrib/messenger/app`, faisons Ctrl^C puis :
 ```
@@ -463,9 +443,7 @@ On constate dans Jaeger que les traces remontent bien
 
 Nous allons "reverse-proxyfier" nos applis avec nginx
 
-Il faut donc corriger le service suivant dans notre fichier `/home/traces-distrib/platform/docker-compose-full-demo.yaml` sur :
-- le port en écoute publiquement (i.e 8080)
-- la valeur de la variable NGINX_UPSTREAM
+Intéressons-nous à l'extrait de notre fichier `/home/traces-distrib/platform/docker-compose-full-demo.yaml`  :
 
 ```
   ingress:
@@ -473,10 +451,10 @@ Il faut donc corriger le service suivant dans notre fichier `/home/traces-distri
     container_name: ingress
     environment:
     ## normalment messenger
-      - NGINX_UPSTREAM=<IP_PUB_clt>
+      - NGINX_UPSTREAM=${CLT}
     # The ingress service is the only service that has ports exposed out.
     ports:
-      - 8080:80
+      - 80:80
     networks:
       - mm_network
 ```
@@ -514,9 +492,9 @@ server {
 }
 ```
 
-Reançons le container `ingress` :
+Relançons le container `ingress` :
 ```
-docker compose -f ./docker-compose.full-demo.yml ingress up --force-recreate -d
+docker compose -f ./docker-compose.full-demo.yml up ingress --force-recreate -d
 ```
 
 On rejoue les mêmes tests, mais cette fois-ci via Nginx :
@@ -541,9 +519,9 @@ curl -X POST \
 ## Instrumenter Nginx
 
 Dans Jaeger, nous voyons toujours les traces, mais aucune mention de Nginx.
-Activons OTel dans Nginx !
+C'est normal, nous devons activer OTel dans Nginx !
 
-Retournons dans `/home/traces-distrib/platform/ingress`, et changeons ainsi le `Dockerfile` :
+L'idée est de changer ainsi le contenu du `Dockerfile` :
 
 ```
 FROM --platform=amd64 nginx:1.23.1
@@ -576,8 +554,17 @@ EXPOSE 8080
 
 STOPSIGNAL SIGQUIT
 ```
+
+Faisons le simplement par :
+```
+cd /home/traces-distrib/platform/ingress
+mv Dockerfile Dockerfil.org
+wget "https://github.com/pragmatic-fermat/observabilite_des_applications/raw/refs/heads/main/config/ingress/Dockerfile"
+```
+
 Créeons le fichier `/home/traces-distrib/platform/ingress/opentelemetry_module.conf` :
 ```
+cat << EOF >/home/traces-distrib/platform/ingress/opentelemetry_module.conf
 NginxModuleEnabled ON;
 NginxModuleOtelSpanExporter otlp;
 NginxModuleOtelExporterEndpoint jaeger:4317;
@@ -586,6 +573,7 @@ NginxModuleServiceNamespace MicroservicesMarchDemoArchitecture;
 NginxModuleServiceInstanceId DemoInstanceId;
 NginxModuleResolveBackends ON;
 NginxModuleTraceAsError ON;
+EOF
 ```
 
 Re-buildons et relancons le container `ingress` :  

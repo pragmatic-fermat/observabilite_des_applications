@@ -12,6 +12,7 @@ packages:
   - curl
   - wget
   - gawk
+  - net-tools
 users:
   - name: root
     lock-passwd: false
@@ -22,13 +23,14 @@ runcmd:
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
   - restart ssh
+  - rm -rf /etc/update-motd.d/99-one-click
 ## DB data
-  - cd /home && wget "https://github.com/pragmatic-fermat/observabilite_des_applications/blob/main/data/mysqlsampledatabase.zip" && unzip /home/mysqlsampledatabase.zip
+  - cd /home && wget "https://github.com/pragmatic-fermat/observabilite_des_applications/raw/refs/heads/main/data/mysqlsampledatabase.zip" && unzip /home/mysqlsampledatabase.zip
 ## asdf  
   - cd /root && git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
   - echo '. "$HOME/.asdf/asdf.sh"' >> /root/.bashrc
   - echo '. "$HOME/.asdf/completions/asdf.bash"' >> /root/.bashrc
-  - asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git && asdf install
+  - asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 snap:
     commands:
         00: ['install', 'yq']

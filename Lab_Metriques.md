@@ -386,7 +386,7 @@ if __name__ == '__main__':
 
 Importons ce script puis lançons-le :
 ```bash
-wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/data/myapp.py" -o /home/myapp.py
+wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/data/myapp.py" -O /home/myapp.py
 python3 /home/myapp.py
 ```
 
@@ -459,6 +459,7 @@ Importons le fichier de base de données qui se trouve (déja) dans /home/mysqls
 Sur le serveur supervisé (i.e `clt`):
 
 ```
+sudo usermod -a -G docker dd-agent
 cd /etc/datadog-agent/conf.d/mysql.d
 ```
 
@@ -493,8 +494,8 @@ instances:
 Cette commande fera alors l'affaire :
 
 ```bash
-rm -f conf.yaml.sample
-wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/config/datadog/config.yml" -o conf.yaml
+rm -f conf.yaml.example
+wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/config/datadog/conf.yaml" -O conf.yaml
 ```
 
 

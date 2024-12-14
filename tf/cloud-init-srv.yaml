@@ -6,11 +6,16 @@ users:
     lock-passwd: false
     plain_text_passwd: "TrainingDay"
 ssh_pwauth: True ## This line enables ssh password authentication
+packages:
+  - curl
+  - git
+  - net-tools
 runcmd:
   - ufw disable
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
   - restart ssh
+  - rm -rf /etc/update-motd.d/99-one-click
 snap:
     commands:
         00: ['install', 'yq']
