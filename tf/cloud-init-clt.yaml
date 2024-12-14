@@ -1,0 +1,21 @@
+#cloud-config
+##apt_upgrade: True
+##apt_reboot_if_required: False
+packages:
+  - python3-prometheus-client
+  - python3-flask
+users:
+  - name: root
+    lock-passwd: false
+    plain_text_passwd: "TrainingDay"
+ssh_pwauth: True ## This line enables ssh password authentication
+runcmd:
+  - ufw disable
+  - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
+  - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
+  - restart ssh
+snap:
+    commands:
+        00: ['install', 'yq']
+        01: ['install', 'kubectl', '--classic']
+        02: ['install', 'helm', '--classic']
