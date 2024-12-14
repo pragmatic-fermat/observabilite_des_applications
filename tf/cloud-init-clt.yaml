@@ -6,6 +6,12 @@ packages:
   - python3-flask
   - mariadb-server
   - unzip
+  - git
+  - dirmngr
+  - gpg
+  - curl
+  - wget
+  - gawk
 users:
   - name: root
     lock-passwd: false
@@ -16,7 +22,13 @@ runcmd:
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
   - restart ssh
-  - cd /home && wget "https://github.com/pragmatic-fermat/observabilite_des_applications/blob/main/data/mysqlsampledatabase.zip" && unzip mysqlsampledatabase.zip
+## DB data
+  - cd /home && wget "https://github.com/pragmatic-fermat/observabilite_des_applications/blob/main/data/mysqlsampledatabase.zip" && unzip /home/mysqlsampledatabase.zip
+## asdf  
+  - cd /root && git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+  - echo '. "$HOME/.asdf/asdf.sh"' >> /root/.bashrc
+  - echo '. "$HOME/.asdf/completions/asdf.bash"' >> /root/.bashrc
+  - asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git && asdf install
 snap:
     commands:
         00: ['install', 'yq']
