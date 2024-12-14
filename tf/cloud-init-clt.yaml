@@ -16,7 +16,7 @@ runcmd:
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
   - restart ssh
-  - cd /home && wget https://github.com/pragmatic-fermat/observabilite_des_applications/blob/main/data/mysqlsampledatabase.zip && unzip mysqlsampledatabase.zip
+  - cd /home && wget "https://github.com/pragmatic-fermat/observabilite_des_applications/blob/main/data/mysqlsampledatabase.zip" && unzip mysqlsampledatabase.zip
 snap:
     commands:
         00: ['install', 'yq']
