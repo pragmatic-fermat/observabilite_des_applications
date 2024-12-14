@@ -1,4 +1,4 @@
-FROM --platform=amd64 nginx:1.23.1
+FROM nginx:1.23.1
 # Replace the nginx.conf file with our own
 ENV NGINX_UPSTREAM=localhost
 COPY default.conf.template /etc/nginx/templates/default.conf.template
@@ -24,6 +24,6 @@ RUN apt-get update \
 # 4. Copy in the configuration file for the NGINX OTel module
 COPY opentelemetry_module.conf /etc/nginx/conf.d/opentelemetry_module.conf
 
-EXPOSE 8080
+EXPOSE 80
 
 STOPSIGNAL SIGQUIT
