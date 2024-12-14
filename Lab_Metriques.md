@@ -21,11 +21,15 @@ Dans ce lab nous voyons 2 approches de la récupération des métriques :
     - [Recupération d'une metrique Custom](#metrique-custom-dans-datadog)
 
 
-# NodeExporter/Prometheus/Grafana
+# Les serveurs dédiés à la disposition de chaque participant.e
 
 On utilise 2 VMs :
-- le serveur de supervision (`srv`) sur lequel on va installer `Prometheus` et `Grafana`
-- le serveur supervisé (`clt`) sur lequel on va installer `NodeExporter`
+- le serveur de supervision (`srv` ) sur lequel on va installer `Prometheus` et `Grafana`
+- la machine supervisée (`clt`) sur lequel on va installer `NodeExporter`
+
+**Note** : L'animateur vous a fournit les noms DNS (FQDN) des serveurs `srv` et `clt`, il suffira de les utiliser à chaque fois que vous vyez dans les labs `srv_FQDN` et `clt_FQDN`
+
+# NodeExporter/Prometheus/Grafana
 
 Prometheus "scrappe" (c-a-d lit et analyse) les métriques sur les serveurs supervisés, les stocke dans sa TSDB, accessible pour Grafana.
 
@@ -41,16 +45,7 @@ docker version
 docker compose version
 ```
 
-**Si** docker-compose n'est pas installé faire ceci :
-```bash
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
-chmod +x $DOCKER_CONFIG/cli-plugins/docker-compose
-docker compose version
-```
-
-Maintenant que `docker` et `docker-compose` sont installés, créeons le répertoire `/home/prometheus` :
+Créeons le répertoire `/home/prometheus` :
 ```
 mkdir /home/prometheus
 cd /home/prometheus
@@ -107,7 +102,7 @@ docker compose create
 docker compose up -d
 ```
 
-Naviguez sur la page Prometheus : http://IP_srv_prom:9090 , et explorez les métriques.
+Naviguez sur la page Prometheus : `http://srv_FQDN:9090` , et explorez les métriques.
 
 Par exemple, retrouvez la métrique qui donne le timestamp de lancement du service prometheus et affichez sa valeur et son graphe.
 
@@ -126,7 +121,7 @@ topk(3,prometheus_http_requests_total{code="200"})
 
 ## Installation de `NodeExporter` sur un autre serveur (`clt`)
 
-Sur un autre serveur (appellons-le `clt`), installons `NodeExporter` :
+Sur l'autre VM (appellons-la `clt`), installons `NodeExporter` :
 
 Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192) , que nous reproduisons ci-dessous :
 
@@ -159,7 +154,7 @@ WantedBy=multi-user.target
 EOF
 ```
 
-Puis
+Puis mettons en place le service
 
 ```
 systemctl enable node_exporter
@@ -169,19 +164,19 @@ systemctl start node_exporter
 
 **NB** : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
 
-Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics 
+Naviguez sur la page NodeExporter : `http://clt_FQDN:9100/metrics`
 
 
-## Supervision du serveur Linux `clt`
+## Ajout de la supervision du serveur Linux `clt`
 
-**Sur le serveur Prometheus**, ajouter en fin de fichier ```/home/prometheus/prometheus.yml```ceci  :
+Tout d'abord créez la variable CLT avec la véritable valeur de `clt_FQDN` :
 
-Tout d'abord créez la variable CLT avec la vraie valeur de IP_clt :
 ```
-CLT=IP_clt
+CLT=clt_FQDN
 ```
 
-Puis lancer la commande suivante qui ajoute au fichier en interpolant la variable 
+**Sur le serveur Prometheus, c-a-d `srv`**, grâce à la commande suivante, ajoutons (avec interpolation) en fin de fichier ```/home/prometheus/prometheus.yml``` ceci  :
+
 ```
 cat << EOF >> /home/prometheus/prometheus.yml
   - job_name: 'node-exporter'
@@ -190,26 +185,22 @@ cat << EOF >> /home/prometheus/prometheus.yml
 EOF
 ```
 
-**NB** : remplacer ```IP_clt``` par la véritable IP du serveur à superviser
-
-**NB2** : attention à bien respecter l'indentation du fichier YAML
-
-Relancer prometheus :
+Relancer le service Prometheus :
 
 ```
 cd /home/prometheus
 docker compose restart
 ```
 
-Naviguez sur la page Prometheus : http://IP_srv:9090/targets 
+Naviguez sur la page Prometheus : `http://srv_FQDN:9090/targets` 
 
-Requetez et graphez par exemple la metrique `node_network_receive_bytes_total`
+Requêtez et graphez par exemple la metrique `node_network_receive_bytes_total`
 
 ### Ajout du service `Grafana`
 
 Grafana va être executé sous la forme d'un container Docker, sur notre serveur `srv`.
 
-Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`) :
+Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`), grâce à la commande ci-dessous :
 
 ```
 cat <<EOF >docker-compose.yml
@@ -250,19 +241,18 @@ volumes:
 EOF
 ```
 
-Relancons docker-compose :
+Relancons les containers grâce à docker-compose :
 ```
-docker compose create
-docker compose up -d
+docker compose up -d -force-recreate
 ```
 
-Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `admin/admin` : http://IP_srv:3000
+Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `admin/admin` : `http://srv_FQDN:3000`
 
-- Aller dans le menu sur la gauche and sélectionner “Connections / Data Sources.”
-- Clicquer sur “Add your  data source.”
+- Aller dans le menu sur la gauche and sélectionner “Connections / Data Sources”
+- Cliquer sur “Add your data source”
 - Choisir “Prometheus” dans la liste
-- Renseigner l'URL http://prometheus:9090 (prometheus est résolu en interne par docker)
-- Cliquer sur  “Save & Test” pour vérifier la connection.
+- Renseigner cette URL : http://prometheus:9090 (le nom du container prometheus est résolu en interne par docker)
+- Cliquer sur  “Save & Test” pour vérifier la connection entre Grafana et Prometheus
 
 ## Dashboard Grafana
 
@@ -284,10 +274,26 @@ Sur le serveur supervisé (`clt`) :
 mkdir /home/textfile
 ```
 
-Configurez NodeExporter pour prendre en compte ce répertoire , modifiant la ligne suivante dans `/etc/systemd/system/node_exporter.service`:
+Configurez le service NodeExporter pour prendre en compte ce répertoire  (modification la ligne suivante dans `/etc/systemd/system/node_exporter.service`) grâce à cette commande :
 ```
+cat <<EOF >/etc/systemd/system/node_exporter.service
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
 ExecStart=/opt/node_exporter/node_exporter --collector.textfile.directory=/home/textfile
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
 ```
+
 
 Puis relançons NodeExporter :
 ```
@@ -295,14 +301,14 @@ systemctl daemon-reload
 systemctl restart node_exporter.service  
 ```
 
-Créeons (à la main) un fichier contenant notre metrique custom (dont la valeur vaut le nombre de secondes depuis l'epoch):
+Créeons (à la main) un fichier contenant notre metrique custom (dont la valeur vaut le nombre de secondes depuis l'*epoch*):
 ```
 echo ma_metrique_custom $(date +%s) > /home/textfile/ma_metrique_custom.prom
 ```
 
-Naviguez sur la page NodeExporter : http://IP_clt:9100/metrics  et constatez que notre métrique est incluse dans la page !
+Naviguez sur la page NodeExporter : http://clt_FQDN:9100/metrics  et constatez que notre métrique est incluse dans la page !
 ```
-curl -s http://IP_clt:9100/metrics | grep "ma_metrique_custom"
+curl -s http://${CLT}:9100/metrics | grep "ma_metrique_custom"
 ```
 
 On obtient :
@@ -313,7 +319,7 @@ ma_metrique_custom 1.722946125e+09
 node_textfile_mtime_seconds{file="ma_metrique_custom.prom"} 1.722946125e+09
 ```
 
-Cette métrique doit également être consutable sur Prometheus directement : http://IP_srv_prom:9090
+Cette métrique doit également être consutable sur Prometheus directement : http://srv_FQDN:9090
 
 ![prom-custom](img/prom-custom.png)
 
@@ -323,10 +329,11 @@ Notez la mention de ```spunge``` afin d'écrire atomiquement le fichier ```textf
 
 ## Instrumenter le Code pour Prometheus
 
-Sur `clt`, nous allons instrumenter  une application API écrite en python avec flask :
+Sur `clt`, nous allons instrumenter  une application API écrite en python avec flask.
+Lançons l'invite de commande :
 
 ```
-apt install -y python3-prometheus-client python3-flask
+python3
 ```
 
 Puis copier le code suivant dans l'invite `python3` (ne pas oublier de faire **2 retours chariots** à la fin) :
@@ -381,15 +388,16 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
-Visiter le site web  http://IP_clt:5000 (l'application)
+Visiter le site web  http://clt_FQDN:5000 (l'application)
 
 ![app-inst-metr](img/app-instr-met.png)
 
-puis le site http://IP_clt:8000  (les métriques Prometheus) 
+puis le site http://clt_FQDN:8000  (les métriques Prometheus) 
 
 ![app-instr](img/app-instr.png)
 
 ## Cleanup
+
 Arrêter le programme python (Ctrl-C) puis le reste :
 ```
 docker compose down
@@ -401,11 +409,11 @@ docker compose down
 
 Créez un compte (gratuit) sur [Datadog](http://datadog.com)
 
-Suivez la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) (Integration > Agent) avec la création à la volée d'une clé API.
+Suivre la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) (Integration > Agent) avec la création à la volée d'une clé API.
 
 ![dd-agent](img/dd-agent.png)
 
-Au bout de quelques minutes, votre serveur va aparaitre dans le portail DataDog, menu à gauche "Infrastructure > Hosts"
+Au bout de quelques minutes, votre serveur `clt` va aparaitre dans le portail DataDog, menu à gauche "Infrastructure > Hosts"
 
 ![dd-infra](img/dd-infra.png)
 
@@ -417,33 +425,16 @@ Supposons que nous souhaitions connaitre le nombre de lignes dans les tables d'u
 
 ### Installation d'une base de données sur le serveur supervisé
 
-Sur notre serveur `clt` :
+Sur notre serveur `clt`, connectons nous à la base de données mariadb (pré-installée, mot de passe vide) :
 
 ```
-apt install -y mariadb-server unzip
-```
-
-Injection d'une base de données nommée `classicmodels`
-
-```
-cd /home/
-wget https://www.mysqltutorial.org/wp-content/uploads/2023/10/mysqlsampledatabase.zip
-unzip mysqlsampledatabase.zip
-```
-
-Puis (mot de passe vide)
-```
-mysql -u root -p
-```
-Ce qui donne 
-```
-Enter password: ********
+mysql -u root
 mysql>
 ```
 
-Enfin, importons le fichier de base de données et configurons le mdp root mysql
+Importons le fichier de base de données qui se trouve (déja) dans /home/mysqlsampledatabase.sql et configurons le mot de passe root mysql
 ```
-> source mysqlsampledatabase.sql;
+> source /home/mysqlsampledatabase.sql;
 > show databases;
 +--------------------+
 | Database           |
