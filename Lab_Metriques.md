@@ -202,7 +202,7 @@ Grafana va être executé sous la forme d'un container Docker, sur notre serveur
 Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`), grâce à la commande ci-dessous :
 
 ```bash
-cat <<EOF >docker-compose.yml
+cat << EOF > /home/prometheus/docker-compose.yml
 services:
   prometheus:
     image: prom/prometheus
@@ -236,7 +236,6 @@ networks:
 volumes:
   prometheus-data:
   grafana-data:
-
 EOF
 ```
 
