@@ -121,7 +121,7 @@ docker compose down
 
 ## Export de logs depuis K8s
 
-### Mise en place accès à K8s
+### Mise en place accès à K8s (piloté depuis la VM srv)
 
 Pré-requis :
 
@@ -132,7 +132,7 @@ Un ingress controler de type nginx est déjà installé, mais il ne sera utilis�
 
 - Avoir les outils ```kubectl``` et ```helm``` installés 
 
-Testons :
+Sur la VM `srv`, testons :
 ```bash
 kubectl version
 helm version 
