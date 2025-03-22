@@ -32,7 +32,7 @@ mkdir -p /home/elastic
 cd /home/elastic
 ```
 
-Puis creeons le fichier `docker-compose.yaml` suivant
+Puis créeons le fichier `docker-compose.yaml` suivant
 ```
 cat <<EOF > docker-compose.yaml
 services:
@@ -100,7 +100,7 @@ Puis dans la fenetre modale :
 > name: *, Timestamp field: @timestamp > Create index pattern
 ```
 
-Allez ensuite dans le menug global de la racine à gauche  ```Analytics > Discover``` :
+Allez ensuite dans le menu global de la racine à gauche  ```Analytics > Discover``` :
 ![kibana1](/img/kibana1.png)
 
 On constate que le module a parsé les logs `nginx` de façon structurée (via un module `filebeat`) et de façon texte pour les `auth.log`
@@ -110,7 +110,7 @@ On constate que le module a parsé les logs `nginx` de façon structurée (via u
 
 ![non-struct](/img/non-struct.png)
 
-Comparez la simplicité de recherche suivant le format, et la capcité de recherche croisée...
+Comparez la simplicité de recherche suivant le format, et la capacité de recherche croisée...
 
 ### Cleanup
 
