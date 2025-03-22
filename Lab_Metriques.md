@@ -432,13 +432,16 @@ Sur notre serveur `clt`, connectons nous à la base de données mariadb (pré-in
 
 ```bash
 mysql -u root
-mysql>
+mysql> exit ;
 ```
 
-Importons le fichier de base de données qui se trouve (déja) dans /home/mysqlsampledatabase.sql et configurons le mot de passe root mysql
+Importons le fichier de base de données qui se trouve (déja) dans /home/mysqlsampledatabase.sql :
 ```
-> source /home/mysqlsampledatabase.sql ;
-> show databases;
+mysql -u root -e "source /home/mysqlsampledatabase.sql;"
+mysql -u root -e "show databases;"
+```
+donne :
+```
 +--------------------+
 | Database           |
 +--------------------+
@@ -448,9 +451,11 @@ Importons le fichier de base de données qui se trouve (déja) dans /home/mysqls
 | performance_schema |
 | sys                |
 +--------------------+
-> ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyN3wP4ssw0rd';
-> flush privileges;
-> exit;
+```
+Puis configurons le mot de passe root mysql
+```
+mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyN3wP4ssw0rd';"
+mysql -u root -e "flush privileges;"
 ```
 
 ### Configuration de l'agent Datadog
