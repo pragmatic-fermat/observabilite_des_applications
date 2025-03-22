@@ -463,7 +463,7 @@ mysql -u root -pMyN3wP4ssw0rd -e "flush privileges;"
 Sur le serveur supervisé (i.e `clt`):
 
 ```
-sudo usermod -a -G docker dd-agent
+usermod -a -G docker dd-agent
 cd /etc/datadog-agent/conf.d/mysql.d
 ```
 
@@ -495,7 +495,7 @@ instances:
            type: gauge
 ```
 
-Cette commande fera alors l'affaire :
+Si vous souhaitez éviter l'édition du fichier, cette commande fera alors le travail :
 
 ```bash
 rm -f conf.yaml.example
@@ -511,7 +511,11 @@ systemctl restart datadog-agent
 Lancer plusieurs fois l'outil de diagnostic jusqu'à ce que le paragraphe MySQL soit ok :
 
 ```
-# datadog-agent status | grep -A10 -i mysql 
+datadog-agent status | grep -A10 -i mysql 
+```
+
+qui donne
+```
     mysql (12.5.1)
     --------------
       Instance ID: mysql:4bf5f516622ead61 [OK]
@@ -524,7 +528,6 @@ Lancer plusieurs fois l'outil de diagnostic jusqu'à ce que le paragraphe MySQL 
       Average Execution Time : 533ms
       Last Execution Date : 2024-08-07 06:09:51 UTC (1723010991000)
       Last Successful Execution Date : 2024-08-07 06:09:51 UTC (1723010991000)
-
 
 ```
 
@@ -548,6 +551,8 @@ Ensuite aller dans Datadog :
 - puis construisez une TopList qui montre le nombre de lignes par table dans notre database 'classimodels' :
 
 ![dd-graph2](img/dd-graph2.png)
+
+Faire attention à bien selectionner "classicmodels.table_name" dans le champ "avg by"
 
 Soit
 
