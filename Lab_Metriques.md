@@ -455,7 +455,7 @@ donne :
 Puis configurons le mot de passe root mysql
 ```
 mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyN3wP4ssw0rd';"
-mysql -u root -e "flush privileges;"
+mysql -u root -pMyN3wP4ssw0rd -e "flush privileges;"
 ```
 
 ### Configuration de l'agent Datadog
