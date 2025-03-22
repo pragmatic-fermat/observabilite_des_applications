@@ -412,6 +412,7 @@ npm install @opentelemetry/auto-instrumentations-node@0.36.4 \
 
 Créeons un fichier `tracing.mjs` :
 ```
+cat << EOF >tracing.mjs
 import opentelemetry from "@opentelemetry/sdk-node";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
@@ -429,6 +430,7 @@ const sdk = new opentelemetry.NodeSDK({
 });
 
 sdk.start();
+EOF
 ```
 
 Puis relançons :
@@ -441,7 +443,7 @@ On constate dans Jaeger que les traces remontent bien
 
 ## Mise en place d'un Reverse Proxy Nginx
 
-Nous allons "reverse-proxyfier" nos applis avec nginx
+Nous souhaitons accéder à notre application via un reverse-proxy nginx.
 
 Intéressons-nous à l'extrait de notre fichier `/home/traces-distrib/platform/docker-compose-full-demo.yaml`  :
 
@@ -492,9 +494,9 @@ server {
 }
 ```
 
-Relançons le container `ingress` :
+Le container `ingress` tourne déjà comme on peut le voir :
 ```
-docker compose -f ./docker-compose.full-demo.yml up ingress --force-recreate -d
+docker compose -f /home/traces-distrib/platform/docker-compose.full-demo.yml ps
 ```
 
 On rejoue les mêmes tests, mais cette fois-ci via Nginx :
@@ -598,7 +600,7 @@ Quelques pistes pour réaliser cela sur la VM `clt` :
 mkdir /home/librespeed
 ```
 
-- créer un `docker-compose.yaml` de ce type pour visiter l'application sur tcp/81 et envoyer la telemetrie vers l'agant DD qui tourne déjà sur le host
+- créer un `docker-compose.yaml` de ce type pour visiter l'application sur tcp/81 et envoyer la telemetrie vers l'agent DD qui tourne déjà sur le host (cf DD_AGENT_HOST)
 ```
 cat << EOF > /home/librespeed/docker-compose.yaml
 services:
@@ -622,10 +624,10 @@ services:
       DD_SERVICE: "librespeed"
       DD_VERSION: "1.0"
       DD_ENV: "training"
-      DD_AGENT_HOST: IP_PUB_CLT
+      DD_AGENT_HOST: $(curl -s ifconfig.me)
       DD_TRACE_AGENT_PORT: 8126
     ports:
-      - "81:80" # webport mapping (host:container)
+      - "81:8080" # webport mapping (host:container)
 EOF
 ```
 
@@ -641,6 +643,13 @@ RUN php /tmp/datadog-setup.php --php-bin=all --enable-profiling
 EOF
 ```
 
+- builder et lancer l'application containerisée :
+```
+cd /home/librespeed/
+docker compose up -d
+```
+
+- visiter le site web http://IP_clt:81
 
 - modifier le `/etc/datadog/datadog.yaml` de cette façon (attention très pointilleux sur les indentations):
 
