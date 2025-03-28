@@ -30,7 +30,7 @@ runcmd:
   - cd /root && git clone https://github.com/asdf-vm/asdf.git /root/.asdf --branch v0.14.0
   - echo '. "$HOME/.asdf/asdf.sh"' >> /root/.bashrc
   - echo '. "$HOME/.asdf/completions/asdf.bash"' >> /root/.bashrc
-  - asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
+  - /root/.asdf/bin/asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 snap:
     commands:
         00: ['install', 'yq']
