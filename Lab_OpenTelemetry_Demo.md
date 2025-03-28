@@ -56,7 +56,7 @@ Cela pourrait ressembler à cela :
 cat << EOF > otel-values.yaml
 components:
 
-  frontendProxy:
+  frontend-proxy:
     enabled: true
     #service:
     #  type: LoadBalancer
@@ -79,11 +79,11 @@ components:
         ## a personnaliser
         value: http://$FQDN/otlp-http/v1/traces
 
-  loadgenerator:
+  load-generator:
   ## si true, quota exhaustion chez grafana_cloud
     enabled: false
 
-  imageprovider:
+  image-provider:
     enabled: true
   
   flagd:
@@ -168,7 +168,7 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 
 et enfin :
 ```
-helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml
+helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml --version 0.36.1
 ```
 
 On obtient ceci :
