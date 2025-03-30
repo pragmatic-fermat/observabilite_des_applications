@@ -247,8 +247,7 @@ Il est possible de provoquer des pannes, via un FeatureFlag.
 
 Vérifions son état :
 ```
-curl -X POST "http://IP_PUB_ftend_proxy:8080/flagservice//flagd.evaluation.v1.Service/ResolveBoolean" \       
-  -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
+curl -X POST "http://$FQDN/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
 ```
 
 On obtient :
@@ -279,8 +278,7 @@ La ligne à modifier est celle qui va contenir ``` "defaultVariant": "on" ``` :
 
 L'application est immédiate :
 ```
-curl -X POST "http://IP_PUB_ftend_proxy:8080/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" \
-  -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
+curl -X POST "http://$FQDN/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
   ```
 qui donne :
 ```
