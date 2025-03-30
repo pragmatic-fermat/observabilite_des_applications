@@ -247,15 +247,20 @@ Il est possible de provoquer des pannes, via un FeatureFlag.
 
 Vérifions son état :
 ```
-curl -X POST "http://$FQDN/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
+curl -s -X POST "http://$FQDN/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json" | jq .
 ```
 
 On obtient :
 ```
-{"value":false,"reason":"STATIC","variant":"off","metadata":{}}%
+{
+  "value": false,
+  "reason": "STATIC",
+  "variant": "off",
+  "metadata": {}
+}
 ```   
 
- Editons le configmap en ```vi``` pour activer les erreurs sur le service ```ProductCatalog``` :
+ Editons le configmap en ```vi``` pour activer les erreurs sur le service ```ProductCatalog``` (d'autres sont possibles) :
 ```
  kubectl edit cm/my-otel-demo-flagd-config 
 ```
@@ -278,11 +283,16 @@ La ligne à modifier est celle qui va contenir ``` "defaultVariant": "on" ``` :
 
 L'application est immédiate :
 ```
-curl -X POST "http://$FQDN/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json"
-  ```
+curl -s -X POST "http://$FQDN/flagservice/flagd.evaluation.v1.Service/ResolveBoolean" -d '{"flagKey":"productCatalogFailure","context":{}}' -H "Content-Type: application/json" | jq .
+```
 qui donne :
 ```
-{"value":true,"reason":"STATIC","variant":"on","metadata":{}}  
+{
+  "value": true,
+  "reason": "STATIC",
+  "variant": "on",
+  "metadata": {}
+}
 ```
 
 On constate alors que la route ```/product/OLJCESPC7Z``` est KO
