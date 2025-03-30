@@ -261,7 +261,7 @@ Il est alors possible d'avoir cote à coté **corrélés** logs et traces
 ![loki](/img/loki3.png)
 
 
-## Extra : Feature FLag
+## Extra : Feature Flag
 
 Il est possible de provoquer des pannes, via un FeatureFlag.
 
@@ -328,3 +328,8 @@ Notez en bas à droite le `Status Message` qui donne la cause de l'erreur (i.e '
 
 On peut également faire le chemin inverse, c-a-d chercher les spans d'erreur puis les investiguer :
 ![trace](/img/trace3.png)
+
+**NB** : pour chercher des spans en erreurs, utilisez par ex la requete TraceQL suivante :
+```
+{.http.status_code = 500 }
+```
