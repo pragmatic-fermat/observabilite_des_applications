@@ -83,7 +83,23 @@ components:
   ## si true, quota exhaustion chez grafana_cloud
     enabled: false
 
-  imageprovider:
+  accountingService:
+    enabled: false
+
+  frauddetectionService:
+    enabled: false
+
+  #imageprovider:
+  #  enabled: true
+
+  accountingService:
+    enabled: false
+
+  frauddetectionService:
+    enabled: false
+
+  kafka:
+    ## besoin poour checkout
     enabled: true
   
   flagd:
@@ -126,7 +142,11 @@ opentelemetry-collector:
         protocols:
           #grpc:
           http:
-            endpoint: 0.0.0.0:4318
+            #endpoint: 0.0.0.0:4318
+            cors:
+              allowed_origins:
+                - "http://*"
+                - "https://*"
       hostmetrics:
         scrapers:
           load:
@@ -168,7 +188,7 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 
 et enfin :
 ```
-helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml --version 0.32.6
+helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml --version 0.31.0
 ```
 
 On obtient ceci :
