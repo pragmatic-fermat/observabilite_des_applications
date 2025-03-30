@@ -41,14 +41,16 @@ Dans l'interface Grafana Cloud, créer un nouveau connecteur (on peut laisser le
 
 ![loki](/img/loki1.png)
 
-On crée un répertoire dédié :
+On crée un répertoire dédié et les variables qui seront injectées dans notre fichier de valeur Helm :
 ```
 mkdir /home/otel-demo
 cd /home/otel-demo
 FQDN="my-otel-demo.mydomain.com"
+GRAF_USER="100..."
+GRAF_TOKEN="glc_ey...."
 ```
 
-En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fournit par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contiendra notamment la configuration du collecteur `opentelemetry` embarqué dans l'application de demo.
+En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fourni par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contiendra notamment la configuration du collecteur `opentelemetry` embarqué dans l'application de demo.
 
 Cela pourrait ressembler à cela :
 
@@ -56,10 +58,8 @@ Cela pourrait ressembler à cela :
 cat << EOF > otel-values.yaml
 components:
 
-  frontend-proxy:
+  frontendProxy:
     enabled: true
-    #service:
-    #  type: LoadBalancer
     ingress:
       enabled: true
       ingressClassName: nginx
@@ -79,11 +79,11 @@ components:
         ## a personnaliser
         value: http://$FQDN/otlp-http/v1/traces
 
-  load-generator:
+  loadgenerator:
   ## si true, quota exhaustion chez grafana_cloud
     enabled: false
 
-  image-provider:
+  imageprovider:
     enabled: true
   
   flagd:
@@ -118,13 +118,13 @@ opentelemetry-collector:
       basicauth/grafana_cloud:
         client_auth:
         ## !!! a personnaliser, token à copier depuis GrafanaLabs
-          username: "1009912"
-          password: "glc_eyJvIj.....XXX"
+          username: $GRAF_USER
+          password: $GRAF_TOKEN
 
     receivers:
       otlp:
         protocols:
-          grpc:
+          #grpc:
           http:
             endpoint: 0.0.0.0:4318
       hostmetrics:
@@ -168,7 +168,7 @@ helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm
 
 et enfin :
 ```
-helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml --version 0.36.1
+helm install my-otel-demo open-telemetry/opentelemetry-demo --values otel-values.yaml --version 0.32.6
 ```
 
 On obtient ceci :
