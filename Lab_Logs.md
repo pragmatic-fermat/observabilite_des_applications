@@ -232,7 +232,7 @@ Notons
 
 ## Visualisation dans `Grafana Loki`
 
-On peut vérifier le statut de l'installation : après quelques minutes, les métriques du cluster remontent bien (cliquer sur 'Refresh' ou changer de data-source si besoin, , tout doit être vert ...sauf Windows):
+On peut vérifier le statut de l'installation : après quelques minutes, les métriques du cluster remontent bien (cliquer sur 'Refresh' ou **changer de data-source** si besoin , tout doit être vert ...sauf Windows):
 
 ![grafana_labs](/img/graf6.png)
 
