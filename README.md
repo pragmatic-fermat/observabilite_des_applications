@@ -8,4 +8,4 @@
 - [Diagnostiquer](/Lab_Diag.md)
 
 
-[Option] Setup Github CodeSpaces
+**[Option]**: [Setup Github CodeSpaces](/Setup_Github_CodeSpace.md)
