@@ -27,7 +27,7 @@ On utilise 2 VMs :
 - le serveur de supervision (`srv` ) sur lequel on va installer `Prometheus` et `Grafana`
 - la machine supervisée (`clt`) sur lequel on va installer `NodeExporter`
 
-**Note** : L'animateur vous a fournit les noms DNS (FQDN) des serveurs `srv` et `clt`, il suffira de les utiliser à chaque fois que vous vyez dans les labs `srv_FQDN` et `clt_FQDN`
+**Note** : L'animateur vous a fournit les noms DNS (FQDN) des serveurs `srv` et `clt`, il suffira de les utiliser à chaque fois que vous voyez dans les labs `srv_FQDN` et `clt_FQDN`
 
 # NodeExporter/Prometheus/Grafana
 
@@ -166,7 +166,9 @@ systemctl start node_exporter
 Naviguez sur la page NodeExporter : `http://clt_FQDN:9100/metrics`
 
 
-## Ajout de la supervision du serveur Linux `clt`
+## Ajout de la supervision du serveur Linux `clt` depuis `srv`
+
+**Sur le serveur Prometheus, c-a-d `srv`**,
 
 Tout d'abord créez la variable CLT avec la véritable valeur de `clt_FQDN` :
 
@@ -174,7 +176,7 @@ Tout d'abord créez la variable CLT avec la véritable valeur de `clt_FQDN` :
 CLT=clt_FQDN
 ```
 
-**Sur le serveur Prometheus, c-a-d `srv`**, grâce à la commande suivante, ajoutons (avec interpolation) en fin de fichier ```/home/prometheus/prometheus.yml``` ceci  :
+Puis, grâce à la commande suivante, ajoutons (avec interpolation) en fin de fichier ```/home/prometheus/prometheus.yml``` ceci  :
 
 ```bash
 cat << EOF >> /home/prometheus/prometheus.yml
@@ -325,7 +327,7 @@ Cette métrique doit également être consutable sur Prometheus directement : ht
 
 Plus de détails [ici](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)
 
-Notez la mention de ```spunge``` afin d'écrire atomiquement le fichier ```textfile```.
+Notez la mention de ```sponge``` afin d'écrire atomiquement le fichier ```textfile```.
 
 ## Instrumenter le Code pour Prometheus
 
