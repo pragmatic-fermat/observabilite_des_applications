@@ -13,7 +13,7 @@ Nous allons utiliser pour cela `Github CodeSpaces`.
 
 Pour lancer un espace de travail `CodeSpaces`, il suffit de suivre les étapes indiquées dans les captures d'écran ci-dessous
 
-A l'intérieur du répo https://github.com/pragmatic-fermat/orchestration-et-containers : 
+A l'intérieur du répo [https://github.com/pragmatic-fermat/orchestration-et-containers](https://github.com/pragmatic-fermat/observabilite_des_applications) : 
 
 - sélectionnez la liste déroulante du bouton `Code`
 ![](/img/github1.png)
