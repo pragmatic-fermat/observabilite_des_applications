@@ -208,18 +208,9 @@ Ce qui donne
 [..]
 "grafana" already exists with the same configuration, skipping
 Hang tight while we grab the latest from your chart repositories...
-...Successfully got an update from the "ingress-nginx" chart repository
-...Successfully got an update from the "k8spacket" chart repository
-...Successfully got an update from the "jetstack" chart repository
-...Successfully got an update from the "kubecost" chart repository
-...Successfully got an update from the "traefik" chart repository
-...Successfully got an update from the "open-telemetry" chart repository
-...Successfully got an update from the "argo" chart repository
-...Successfully got an update from the "datadog" chart repository
-...Successfully got an update from the "cilium" chart repository
+[..]
 ...Successfully got an update from the "grafana" chart repository
 ...Successfully got an update from the "prometheus-community" chart repository
-...Successfully got an update from the "my-repo" chart repository
 ...Successfully got an update from the "bitnami" chart repository
 Update Complete. ⎈Happy Helming!⎈
 Release "grafana-k8s-monitoring" does not exist. Installing it now.
