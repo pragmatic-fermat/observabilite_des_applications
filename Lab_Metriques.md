@@ -67,12 +67,6 @@ services:
       - prometheus-data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-    networks:
-      - monitoring
-
-networks:
-  monitoring:
-    driver: bridge
 
 volumes:
   prometheus-data:
@@ -217,8 +211,6 @@ services:
       - prometheus-data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
-    networks:
-      - monitoring
 
   grafana:
     image: grafana/grafana-enterprise
@@ -228,12 +220,6 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-    networks:
-      - monitoring
-
-networks:
-  monitoring:
-     driver: bridge
 
 volumes:
   prometheus-data:
