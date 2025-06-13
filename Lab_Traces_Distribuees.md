@@ -34,10 +34,16 @@ Nous allons modifier le `docker-compose.full-demo.yml` ainsi c-a-d de façon à
 - retirer la mention du `depends` dans le service/paragraphe `ingress`
 - bien vérifier que le paragraphe Jaeger est présent
 
-Poisitionnons cette variable sur la vraie valeur de l'adresse IP de la VM `clt` : 
+Poisitionnons cette variable sur la valeur de l'adresse IP de la VM `clt` ou son nom DNS : 
 ```
 CLT=clt_FQDN
 ```
+
+Vérifier en faisant
+```
+echo $CLT
+```
+
 Puis
 ```
 cat << EOF > docker-compose.full-demo.yml
