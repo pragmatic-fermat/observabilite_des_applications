@@ -457,7 +457,7 @@ On constate dans Jaeger que les traces remontent bien
 
 Nous souhaitons accéder à notre application via un reverse-proxy nginx.
 
-Intéressons-nous à l'extrait de notre fichier `/home/traces-distrib/platform/docker-compose.full-demo.yaml`  :
+Intéressons-nous à l'extrait de notre fichier `/home/traces-distrib/platform/docker-compose.full-demo.yml`  :
 
 ```
   ingress:
