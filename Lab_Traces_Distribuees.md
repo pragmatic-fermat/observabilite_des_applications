@@ -354,7 +354,13 @@ Lancer à nouveau un POST; dans Jaeger vous devez alors voir ceci
 
 ![jaeger1](/img/tutorial-OTel-tracing-microservices_ch2-unknown-service.png)
 
-Lancer une requete vers http://localhost:4000/health et retrouvez-là :
+Lancer une requete vers http://localhost:4000/health 
+
+```
+curl http://localhost:4000/health
+```
+
+et retrouvez-la dans Jaerger :
 
 ![jaeger2](/img/health.png)
 
