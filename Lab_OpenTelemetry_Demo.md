@@ -13,6 +13,10 @@ Nous avons fait le choix du backend [Grafana Cloud](https://grafana.com/), mais 
 En supposant que nous venons de réaliser le [Lab Logs](/Lab_Logs.md), repartons à vide sur notre cluster Kubernetes :
 ```
 helm delete grafana-k8s-monitoring
+helm delete grafana-k8s-monitoring-alloy-logs  
+helm delete grafana-k8s-monitoring-alloy-metrics
+helm delete grafana-k8s-monitoring-alloy-receiver 
+helm delete grafana-k8s-monitoring-alloy-singleton	
 ```
 
 Le cluster qui vous a été fourni (cf [Lab Logs](/Lab_Logs.md)) est déjà doté d'un ingress `nginx`, que nous ferons pointer sur le service frontend-proxy.
