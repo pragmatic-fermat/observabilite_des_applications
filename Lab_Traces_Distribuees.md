@@ -678,7 +678,7 @@ puis
 systemctl restart datadog-agent
 ```
 
-- vérifier avec `dd-agent` après avoir généré du trafic sur le site web http://IP_clt:81
+- vérifier avec `datadog-agent` après avoir généré du trafic sur le site web http://IP_clt:81
 ```
 # datadog-agent status | grep -i trace -A10
     https://trace.agent.datadoghq.eu
