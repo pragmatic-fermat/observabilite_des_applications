@@ -663,7 +663,7 @@ docker compose up -d
 
 - visiter le site web http://IP_clt:81
 
-- modifier le `/etc/datadog/datadog.yaml` de cette façon (attention très pointilleux sur les indentations):
+- modifier le `/etc/datadog-agent/datadog.yaml` de cette façon (attention très pointilleux sur les indentations):
 
 ```
 # grep -v "#" /etc/datadog-agent/datadog.yaml | egrep "[a-z]"
