@@ -211,7 +211,6 @@ Hang tight while we grab the latest from your chart repositories...
 [..]
 ...Successfully got an update from the "grafana" chart repository
 ...Successfully got an update from the "prometheus-community" chart repository
-...Successfully got an update from the "bitnami" chart repository
 Update Complete. ⎈Happy Helming!⎈
 Release "grafana-k8s-monitoring" does not exist. Installing it now.
 NAME: grafana-k8s-monitoring
