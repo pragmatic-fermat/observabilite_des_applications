@@ -187,9 +187,9 @@ cd /home/prometheus
 docker compose restart
 ```
 
-Naviguez sur la page Prometheus : `http://srv_FQDN:9090/targets` 
+Naviguez sur la page Prometheus : `http://srv_FQDN:9090/targets` pour visualiser les endpoins "scrapés".
 
-Requêtez et graphez par exemple la metrique `node_network_receive_bytes_total`
+Par ailleurs, eequêtez et graphez par exemple la metrique `node_network_receive_bytes_total`
 
 ### Ajout du service `Grafana`
 
