@@ -1,10 +1,13 @@
 #!/bin/bash
 ## PRIVATE USE ###
-##on lin02 ##
+## On lin02 ##
 
 ## doctl info
 doctl auth list
 doctl account get
+
+## Si necessaire
+## doctl auth switch --context r?????
 
 ##Cleanup wole bucket
 for f in $(s3cmd ls s3://kconfig/ | awk '{print $4}'); do
