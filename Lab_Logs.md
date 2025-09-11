@@ -242,6 +242,8 @@ On peut ensuite explorer les métriques et les logs :
 
 ![grafana_labs](/img/graf8.png)
 
+Récemment, le menu a changé de nom : DRILLDOWN
+
 ![grafana_labs](/img/graf9.png)
 
 Pour note, les agents d'observabilité ```Alloy``` et ```NodeExporter``` sous déployés sous la forme de `DaemonSet`
