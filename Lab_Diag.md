@@ -21,16 +21,13 @@ cd observabilite_des_applications
 ```
 
 
-Créer un fichier `.env` :
+Définir une variable "suff" (i.e pour l'exemple 3 ci-dessous) :
 ```
-cat <<EOF >.env
-suff=''
-##suff='-example1'
-
-EOF
+suff="-example3"
 ```
 
-Creer un fichier `docker-compose.yaml` ainsi :
+
+Creer un fichier `docker-compose.yaml` ainsi (qui va interpoler $suff) :
 ```
 cat <<EOF >docker-compose.yaml
 services:
@@ -169,7 +166,8 @@ EOF
 
 Pour passer d'un scenario à l'autre (`example1` à `example5`), il suffit de :
 
-- modifier en conséquence la variable `suff` dans le fichier `.env`
+- modifier en conséquence la variable d'environnement `suff`
+- copier/coller le docker-compose.yml afin de l'écraser, avec la prise en compte de la nouvelle valeur de $suff
 - relancer `docker compose up -d --force-recreate`
 - diagnostiquer les symptomes et leur cause
 
