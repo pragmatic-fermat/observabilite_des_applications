@@ -600,6 +600,26 @@ Refaire ensuite des requêtes et observer que le service `messenger-lb` apparait
 
 ![jaeger-nginx](/img/jaeger-nginx.png)
 
+## Loger les Post Data
+
+C'est une mauvaise idée, mais une feature demandée par les devs...
+Dans la fenêtre du process messenger que l'on arrete, on recupère des fichiers de conf adaptés
+
+```
+cd /home/traces-distrib/messenger/app
+wget https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/data/new-messenger-index.mjs
+wget https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/data/new-messenger-tracing.mjs
+```
+
+On peut relancer avec ces fichiers modifiés
+```
+# node --import ./new-messenger-tracing.mjs new-messenger-index.mjs 
+messenger_service listening on port 4000
+
+```
+Coté Jaegger, un event (=log) apparait avec les attributs POST DATA
+
+![jaeger-post-data](/img/jaeger-post-data.png)
 
 # Extra : Tracing avec Datadog
 
