@@ -48,7 +48,6 @@ app.use((req, _res, next) => {
   }
   next();
 });
-*//
 
 app.use(router);
 
