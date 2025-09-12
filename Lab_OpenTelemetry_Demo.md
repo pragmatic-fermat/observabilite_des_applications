@@ -49,9 +49,9 @@ On crée un répertoire dédié et les variables qui seront injectées dans notr
 ```
 mkdir /home/otel-demo
 cd /home/otel-demo
-FQDN="my-otel-demo.mydomain.com"
-GRAF_USER="100..."
-GRAF_TOKEN="glc_ey...."
+FQDN="my-otel-demo.mydomain.com"; # <= cette valeur est individuelle et fournie par l'animateur
+GRAF_USER="100..." ; # <= cette valeur est lue dans le wizzard GarafanLabs
+GRAF_TOKEN="glc_ey...." ; # <= cette valeur est lue dans le wizzard GarafanLabs
 ```
 
 En se basant sur sur la [documentation](https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo) et le [chart Helm](https://github.com/open-telemetry/opentelemetry-helm-charts/blob/main/charts/opentelemetry-demo/values.yaml) et ce qui est fourni par la procédure  initiée dans Grafana_Cloud, créer un fichier ```otel-values.yaml``` qui contiendra notamment la configuration du collecteur `opentelemetry` embarqué dans l'application de demo.
@@ -80,7 +80,7 @@ components:
     enabled: true
     envOverrides:
       - name: PUBLIC_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-        ## a personnaliser
+        ## a personnaliser suivant le wizzard Grafana Labs
         value: http://$FQDN/otlp-http/v1/traces
 
   loadgenerator:
