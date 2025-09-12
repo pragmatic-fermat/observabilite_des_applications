@@ -10,7 +10,7 @@ Notre object est de publier l'applications suivante, de l'instrumenter et de la 
 
 Nous avons fait le choix du backend [Grafana Cloud](https://grafana.com/), mais d'autres sont possibles tels que [Datadog](https://docs.datadoghq.com/fr/opentelemetry/guide/otel_demo_to_datadog/?tab=kubernetes) ou [Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/) pour ne citer qu'eux...
 
-En supposant que nous venons de réaliser le [Lab Logs](/Lab_Logs.md), repartons à vide sur notre cluster Kubernetes :
+En supposant que nous venons de réaliser le [Lab Logs](/Lab_Logs.md), repartons à vide sur notre cluster Kubernetes (**sur le serveur**):
 ```
 helm delete grafana-k8s-monitoring
 helm delete grafana-k8s-monitoring-alloy-logs  
