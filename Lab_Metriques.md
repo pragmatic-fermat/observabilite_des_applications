@@ -247,7 +247,7 @@ Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `a
 - Copier le dashboard ID. Dans notre cas, l'ID est 1860.
 - De retour sur *notre* Grafana, sur la gauche, cliquer sur  “Dashboard” puis le bouton bleu en haut à gauche "New" : dans cette liste déroulante, sélectionner “Import”
 - Dans la section “Grafana.com Dashboard” , copier le dashboard ID (1860) dans le champ “Grafana.com Dashboard ID” .
-- Cliquer sur le bouton “Import” , sélectionner *notre* prometheus dans le champ (liste déroulante)
+- Cliquer sur le bouton “Load” , sélectionner *notre* prometheus dans le champ (liste déroulante)
 
 Naviguer dans la section des Dashboard.... 
 
