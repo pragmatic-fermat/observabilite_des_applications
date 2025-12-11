@@ -402,8 +402,11 @@ Créez un compte (gratuit) sur [Datadog](http://datadog.com)
 
 Suivre la procédure d'[installation d'un agent systeme](https://app.datadoghq.eu/account/settings/agent/latest?platform=overview) (Integration > Agent) avec la création à la volée d'une clé API.
 
+![dd-agent](img/new-dd-agent.png)
+
 ![dd-agent](img/dd-agent.png)
 
+Execeutez cette commande sur `clt`
 Au bout de quelques minutes, votre serveur `clt` va aparaitre dans le portail DataDog, menu à gauche "Infrastructure > Hosts"
 
 ![dd-infra](img/dd-infra.png)
