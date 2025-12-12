@@ -75,7 +75,7 @@ services:
       - mm_network
 
   jaeger:
-    image: jaegertracing/all-in-one:1.41
+    image: jaegertracing/all-in-one:1.76.0
     container_name: jaeger
     ports:
       - "16686:16686"
