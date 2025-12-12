@@ -406,7 +406,9 @@ Suivre la procédure d'[installation d'un agent systeme](https://app.datadoghq.e
 
 ![dd-agent](img/dd-agent.png)
 
-Execeutez cette commande sur `clt`
+Copiez et executez cette commande sur `clt`
+
+
 Au bout de quelques minutes, votre serveur `clt` va aparaitre dans le portail DataDog, menu à gauche "Infrastructure > Hosts"
 
 ![dd-infra](img/dd-infra.png)

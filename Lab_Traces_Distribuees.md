@@ -177,10 +177,12 @@ npm install
 
 Dans `/home/traces-distrib/messenger/app` :
 ```
+cd /home/traces-distrib/messenger/app
 npm run refresh-db
 ```
 Dans `/home/traces-distrib/notifier/app` :
 ```
+cd /home/traces-distrib/notifier/app
 npm run refresh-db
 ```
 
