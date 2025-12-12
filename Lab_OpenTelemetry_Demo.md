@@ -5,7 +5,7 @@ C'est un lab très complet qui permet de voir l'ensemble de la stack d'observabi
 
 ## Deploiement de l'apli demo-otel
 
-Notre object est de publier l'applications suivante, de l'instrumenter et de la debugger :
+Notre objectif est de publier l'applications suivante, de l'instrumenter et de la debugger :
 ![darchi](/img/demo-archi.png)
 
 Nous avons fait le choix du backend [Grafana Cloud](https://grafana.com/), mais d'autres sont possibles tels que [Datadog](https://docs.datadoghq.com/fr/opentelemetry/guide/otel_demo_to_datadog/?tab=kubernetes) ou [Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/) pour ne citer qu'eux...
