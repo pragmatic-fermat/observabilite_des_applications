@@ -602,7 +602,7 @@ Refaire ensuite des requêtes et observer que le service `messenger-lb` apparait
 
 ![jaeger-nginx](/img/jaeger-nginx.png)
 
-## Loger les Post Data
+## Logger les Post Data
 
 C'est une mauvaise idée, mais une feature demandée par les devs...
 Dans la fenêtre du process messenger que l'on arrete, on recupère des fichiers de conf adaptés
