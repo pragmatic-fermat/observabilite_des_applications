@@ -158,7 +158,7 @@ systemctl enable --now node_exporter
 systemctl status node_exporter --no-pager
 ```
 
-**NB** : ce lab a été testé avec la version 1.8.2 de NodeExporter, modifiez la variable `VERSION` pour en utiliser une autre.
+**NB** : la version recommandée de NodeExporter pour ce lab est la 1.8.2, modifiez la variable `VERSION` pour en utiliser une autre.
 
 Naviguez sur la page NodeExporter : `http://clt_FQDN:9100/metrics`
 
@@ -468,11 +468,8 @@ mysql -u root -pMyN3wP4ssw0rd -e "flush privileges;"
 Sur le serveur supervisé (i.e `clt`):
 
 ```
-usermod -a -G docker dd-agent
 cd /etc/datadog-agent/conf.d/mysql.d
 ```
-
-La première commande autorise l'agent à interroger le moteur Docker (le redémarrage de l'agent ci-dessous la prend en compte).
 
 Dans le fichier `conf.yaml` nous voudrions injecter (en faisant attention aux indentations) quelque chose comme ceci:
 
