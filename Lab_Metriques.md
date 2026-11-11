@@ -1,3 +1,4 @@
+# Lab Métriques : Prometheus, Grafana et Datadog
 
 # Objectifs 
 
@@ -9,16 +10,17 @@ Dans ce lab nous voyons 2 approches de la récupération des métriques :
 # Contenu
 
 - [NodeExporter/Prometheus/Grafana](#nodeexporterprometheusgrafana)
-    - [Utilisation de NodeExporter pour publier les métriques systèmes d’un serveur Linux](#nodeexporter)
-    - [Installation de NodeExporter](#installation-de-nodeexporter-sur-un-autre-serveur)
-    - [Collecte des métriques par Prometheus](#installation-dun-serveur-prometheus)
-    - [Visualisation dans Grafana](#dashboard-grafana)
-    - [Ajout de metric custom dans NodeExporter](#ajout-dune-metrique-custom-dans-nodeexporter)
-    - [Instrumenter le code avec Prometheus](#instrumenter-le-code-pour-prometheus)
+    - [Installation d'un serveur Prometheus](#installation-dun-serveur-prometheus)
+    - [Installation de NodeExporter sur un autre serveur](#installation-de-nodeexporter-sur-un-autre-serveur-clt)
+    - [Ajout de la supervision du serveur Linux depuis srv](#ajout-de-la-supervision-du-serveur-linux-clt-depuis-srv)
+    - [Ajout du service Grafana](#ajout-du-service-grafana)
+    - [Dashboard Grafana](#dashboard-grafana)
+    - [Ajout d'une métrique custom dans NodeExporter](#ajout-dune-métrique-custom-dans-nodeexporter)
+    - [Instrumenter le code pour Prometheus](#instrumenter-le-code-pour-prometheus)
 
 - [Datadog](#supervision-avec-datadog)
     - [Installation de l'agent Datadog](#installation-de-lagent-datadog)
-    - [Recupération d'une metrique Custom](#metrique-custom-dans-datadog)
+    - [Récupération d'une métrique custom](#métrique-custom-dans-datadog)
 
 
 # Les serveurs dédiés à la disposition de chaque participant.e
@@ -27,31 +29,31 @@ On utilise 2 VMs :
 - le serveur de supervision (`srv` ) sur lequel on va installer `Prometheus` et `Grafana`
 - la machine supervisée (`clt`) sur lequel on va installer `NodeExporter`
 
-**Note** : L'animateur vous a fournit les noms DNS (FQDN) des serveurs `srv` et `clt`, il suffira de les utiliser à chaque fois que vous voyez dans les labs `srv_FQDN` et `clt_FQDN`
+**Note** : L'animateur vous a fourni les noms DNS (FQDN) des serveurs `srv` et `clt`, il suffira de les utiliser à chaque fois que vous voyez dans les labs `srv_FQDN` et `clt_FQDN`
 
 # NodeExporter/Prometheus/Grafana
 
-Prometheus "scrappe" (c-a-d lit et analyse) les métriques sur les serveurs supervisés, les stocke dans sa TSDB, accessible pour Grafana.
+Prometheus "scrape" (c-a-d lit et analyse) les métriques sur les serveurs supervisés, les stocke dans sa TSDB, accessible pour Grafana.
 
-![prom-arch](/img/prom-architecture.png)
+![prom-arch](img/prom-architecture.png)
 
 ## Installation d'un serveur `Prometheus`
 
 Connectez-vous au serveur de supervision `srv` suivant les accès fournis par l'animateur.
 
-Vérifions que le moteur `docker` et `docker compose` est bien installé
+Vérifions que le moteur `docker` et `docker compose` sont bien installés
 ```
 docker version
 docker compose version
 ```
 
-Créeons le répertoire `/home/prometheus` :
+Créons le répertoire `/home/prometheus` :
 ```
 mkdir /home/prometheus
 cd /home/prometheus
 ```
 
-Créeons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service `prometheus` en copiant collant directement cette commande dans le shell :
+Créons dans ce répertoire le fichier ```docker-compose.yml``` ci-dessous qui définit le service `prometheus` en copiant-collant directement cette commande dans le shell :
 
 ```
 cat <<EOF >docker-compose.yml
@@ -73,7 +75,7 @@ volumes:
 EOF
 ```
 
-Créeons le fichier de configuration  ```/home/prometheus/prometheus.yml``` en tapant cette ligne de commande  :
+Créons le fichier de configuration  ```/home/prometheus/prometheus.yml``` en tapant cette ligne de commande  :
 
 ```
 cat <<EOF >/home/prometheus/prometheus.yml
@@ -99,7 +101,7 @@ Naviguez sur la page Prometheus : `http://srv_FQDN:9090` , et explorez les métr
 
 Par exemple, retrouvez la métrique qui donne le timestamp de lancement du service prometheus et affichez sa valeur et son graphe.
 
-Autre exemple (cf [doc](https://prometheus.io/docs/prometheus/latest/querying/examples/)), aggrégez les visites des pages web par URI :
+Autre exemple (cf [doc](https://prometheus.io/docs/prometheus/latest/querying/examples/)), agrégez les visites des pages web par URI :
 ```
 sum(prometheus_http_requests_total) by (handler)
 ```
@@ -119,10 +121,11 @@ Sur l'autre VM (appellons-la `clt`), installons `NodeExporter` :
 Le mieux est de suivre cette [procédure](https://gist.github.com/nwesterhausen/d06a772cbf2a741332e37b5b19edb192) , que nous reproduisons ci-dessous :
 
 ```bash
+VERSION=1.8.2
 useradd --no-create-home --shell /bin/false node_exporter
-wget https://github.com/prometheus/node_exporter/releases/download/v0.18.1/node_exporter-0.18.1.linux-amd64.tar.gz
-tar xvf node_exporter-0.18.1.linux-amd64.tar.gz
-mv node_exporter-0.18.1.linux-amd64 /opt/node_exporter
+wget https://github.com/prometheus/node_exporter/releases/download/v${VERSION}/node_exporter-${VERSION}.linux-amd64.tar.gz
+tar xvf node_exporter-${VERSION}.linux-amd64.tar.gz
+mv node_exporter-${VERSION}.linux-amd64 /opt/node_exporter
 chown -R node_exporter:node_exporter /opt/node_exporter
 ```
 
@@ -150,12 +153,12 @@ EOF
 Puis mettons en place le service
 
 ```bash
-systemctl enable node_exporter
 systemctl daemon-reload
-systemctl start node_exporter
+systemctl enable --now node_exporter
+systemctl status node_exporter --no-pager
 ```
 
-**NB** : à l'heure de la rédaction de ces lignes, la dernière version est 1.8.2
+**NB** : la version recommandée de NodeExporter pour ce lab est la 1.8.2, modifiez la variable `VERSION` pour en utiliser une autre.
 
 Naviguez sur la page NodeExporter : `http://clt_FQDN:9100/metrics`
 
@@ -176,7 +179,7 @@ Puis, grâce à la commande suivante, ajoutons (avec interpolation) en fin de fi
 cat << EOF >> /home/prometheus/prometheus.yml
   - job_name: 'node-exporter'
     static_configs:
-      - targets: [${CLT}:9100]
+      - targets: ['${CLT}:9100']
 EOF
 ```
 
@@ -187,13 +190,13 @@ cd /home/prometheus
 docker compose restart
 ```
 
-Naviguez sur la page Prometheus : `http://srv_FQDN:9090/targets` pour visualiser les endpoins "scrapés".
+Naviguez sur la page Prometheus : `http://srv_FQDN:9090/targets` pour visualiser les endpoints "scrapés".
 
-Par ailleurs, eequêtez et graphez par exemple la metrique `node_network_receive_bytes_total`
+Par ailleurs, requêtez et graphez par exemple la métrique `node_network_receive_bytes_total`
 
-### Ajout du service `Grafana`
+## Ajout du service `Grafana`
 
-Grafana va être executé sous la forme d'un container Docker, sur notre serveur `srv`.
+Grafana va être exécuté sous la forme d'un container Docker, sur notre serveur `srv`.
 
 Le plus simple et efficace consiste donc à étendre notre ```docker-compose.yml``` initial ainsi (c-a-d en insérant le bloc `grafana` et son `volume`), grâce à la commande ci-dessous :
 
@@ -235,11 +238,11 @@ docker compose up -d --force-recreate
 
 Consultons l'interface web de Grafana en HTTP sur le port 3000 avec les creds `admin/admin` : `http://srv_FQDN:3000`
 
-- Aller dans le menu sur la gauche and sélectionner “Connections / Data Sources”
+- Aller dans le menu sur la gauche et sélectionner “Connections / Data Sources”
 - Cliquer sur “Add your data source”
 - Choisir “Prometheus” dans la liste
 - Renseigner cette URL : http://prometheus:9090 (le nom du container prometheus est résolu en interne par docker)
-- Cliquer sur  “Save & Test” pour vérifier la connection entre Grafana et Prometheus
+- Cliquer sur  “Save & Test” pour vérifier la connexion entre Grafana et Prometheus
 
 ## Dashboard Grafana
 
@@ -253,7 +256,7 @@ Naviguer dans la section des Dashboard....
 
 ![graf-node](img/graf-node.png)
 
-## Ajout d'une metrique custom dans NodeExporter
+## Ajout d'une métrique custom dans NodeExporter
 
 Sur le serveur supervisé (`clt`) :
 
@@ -261,7 +264,7 @@ Sur le serveur supervisé (`clt`) :
 mkdir /home/textfile
 ```
 
-Configurez le service NodeExporter pour prendre en compte ce répertoire  (modification la ligne suivante dans `/etc/systemd/system/node_exporter.service`) grâce à cette commande :
+Configurez le service NodeExporter pour prendre en compte ce répertoire (seule la ligne `ExecStart` de `/etc/systemd/system/node_exporter.service` change, la commande suivante réécrit le fichier en entier) :
 
 ```bash
 cat <<EOF >/etc/systemd/system/node_exporter.service
@@ -274,7 +277,7 @@ After=network-online.target
 User=node_exporter
 Group=node_exporter
 Type=simple
-ExecStart=/opt/node_exporter/node_exporter --collector.textfile.directory=/home/textfile
+ExecStart=/opt/node_exporter/node_exporter --collector.systemd --collector.textfile.directory=/home/textfile
 
 [Install]
 WantedBy=multi-user.target
@@ -289,14 +292,14 @@ systemctl daemon-reload
 systemctl restart node_exporter.service  
 ```
 
-Créeons (à la main) un fichier contenant notre metrique custom (dont la valeur vaut le nombre de secondes depuis l'*epoch*):
+Créons (à la main) un fichier contenant notre métrique custom (dont la valeur vaut le nombre de secondes depuis l'*epoch*):
 ```
 echo ma_metrique_custom $(date +%s) > /home/textfile/ma_metrique_custom.prom
 ```
 
 Naviguez sur la page NodeExporter : http://clt_FQDN:9100/metrics  et constatez que notre métrique est incluse dans la page !
 ```
-curl -s http://${CLT}:9100/metrics | grep "ma_metrique_custom"
+curl -s http://localhost:9100/metrics | grep "ma_metrique_custom"
 ```
 
 On obtient :
@@ -307,13 +310,13 @@ ma_metrique_custom 1.722946125e+09
 node_textfile_mtime_seconds{file="ma_metrique_custom.prom"} 1.722946125e+09
 ```
 
-Cette métrique doit également être consutable sur Prometheus directement : http://srv_FQDN:9090
+Cette métrique doit également être consultable sur Prometheus directement : http://srv_FQDN:9090
 
 ![prom-custom](img/prom-custom.png)
 
 Plus de détails [ici](https://github.com/prometheus-community/node-exporter-textfile-collector-scripts)
 
-Notez la mention de ```sponge``` afin d'écrire atomiquement le fichier ```textfile```.
+Dans un script réel, écrivez le fichier de façon atomique (avec ```sponge``` ou en écrivant dans un fichier temporaire puis en le renommant avec `mv`), afin que NodeExporter ne lise jamais un fichier à moitié écrit.
 
 ## Instrumenter le Code pour Prometheus
 
@@ -371,6 +374,11 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ```
 
+Vérifions que les modules Python nécessaires sont présents (sinon, sur Debian/Ubuntu : `apt install python3-flask python3-prometheus-client`) :
+```bash
+python3 -c "import flask, prometheus_client"
+```
+
 Importons ce script puis lançons-le :
 ```bash
 wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_applications/refs/heads/main/data/myapp.py" -O /home/myapp.py
@@ -388,11 +396,14 @@ puis le site http://clt_FQDN:8000  (les métriques Prometheus)
 
 ## Cleanup
 
-Arrêter le programme python (Ctrl-C) puis le reste des containers (i.e Prometheus et Grafana) ainsi :
+Arrêter le programme python (Ctrl-C) puis, sur `srv`, le reste des containers (i.e Prometheus et Grafana) ainsi :
 
 ```bash
+cd /home/prometheus
 docker compose down
 ```
+
+Ajoutez l'option `-v` pour supprimer également les volumes (données Prometheus et Grafana).
 
 # Supervision avec Datadog
 
@@ -406,26 +417,25 @@ Suivre la procédure d'[installation d'un agent systeme](https://app.datadoghq.e
 
 ![dd-agent](img/dd-agent.png)
 
-Copiez et executez cette commande sur `clt`
+Copiez et exécutez cette commande sur `clt`
 
 
-Au bout de quelques minutes, votre serveur `clt` va aparaitre dans le portail DataDog, menu à gauche "Infrastructure > Hosts"
+Au bout de quelques minutes, votre serveur `clt` va apparaître dans le portail Datadog, menu à gauche "Infrastructure > Hosts"
 
 ![dd-infra](img/dd-infra.png)
 
-Vous pouvez créer une alerte (monitor) sur cette [page](https://app.datadoghq.eu/monitors/create) en choisissant par exemple la metrique ```system.disk.free``` ou autre...)
+Vous pouvez créer une alerte (monitor) sur cette [page](https://app.datadoghq.eu/monitors/create) en choisissant par exemple la métrique ```system.disk.free``` ou autre...)
 
-## Metrique custom dans Datadog
+## Métrique custom dans Datadog
 
-Supposons que nous souhaitions connaitre le nombre de lignes dans les tables d'une base de données.
+Supposons que nous souhaitions connaître le nombre de lignes dans les tables d'une base de données.
 
 ### Installation d'une base de données sur le serveur supervisé
 
 Sur notre serveur `clt`, connectons nous à la base de données mariadb (pré-installée, mot de passe vide) :
 
 ```bash
-mysql -u root
-mysql> exit ;
+mysql -u root -e "SELECT VERSION();"
 ```
 
 Importons le fichier de base de données qui se trouve (déja) dans /home/mysqlsampledatabase.sql :
@@ -451,12 +461,13 @@ mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyN3wP4ssw0rd';"
 mysql -u root -pMyN3wP4ssw0rd -e "flush privileges;"
 ```
 
+**Note** : ce mot de passe est celui du lab, il figure aussi en clair dans la configuration de l'agent ci-dessous. Ne le réutilisez jamais en dehors de ce contexte.
+
 ### Configuration de l'agent Datadog
 
 Sur le serveur supervisé (i.e `clt`):
 
 ```
-usermod -a -G docker dd-agent
 cd /etc/datadog-agent/conf.d/mysql.d
 ```
 
@@ -496,7 +507,7 @@ wget "https://raw.githubusercontent.com/pragmatic-fermat/observabilite_des_appli
 ```
 
 
-Relancer l'agent datadog et vérifier que la plugin SQL est sans erreur :
+Relancer l'agent datadog et vérifier que le plugin SQL est sans erreur :
 
 ```bash
 systemctl restart datadog-agent
@@ -537,11 +548,11 @@ Ensuite aller dans Datadog :
 
 ![dd-class](img/dd-class.png)
 
-- dans un Dasboard, ajouter 2 graphes montrant le nombre de customers et d'employes
+- dans un Dashboard, ajouter 2 graphes montrant le nombre de customers et d'employes
 
 ![dd-graph1](img/dd-graph1.png)
 
-- puis construisez une TopList qui montre le nombre de lignes par table dans notre database 'classimodels' :
+- puis construisez une TopList qui montre le nombre de lignes par table dans notre database 'classicmodels' :
 
 ![dd-graph2](img/dd-graph2.png)
 
@@ -553,3 +564,10 @@ Soit
 
 ## Cleanup
 
+Sur `clt`, arrêtons l'agent :
+
+```bash
+systemctl disable --now datadog-agent
+```
+
+Dans Datadog, révoquez la clé API créée pour ce lab (Organization Settings > API Keys).
