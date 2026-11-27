@@ -8,8 +8,9 @@ Ce dossier decrit les machines des labs sur DigitalOcean : un couple `clt-N` /
 Pour chaque numero N de 0 a `group_count - 1` :
 
 - un droplet `clt-N` (machine cliente) et un droplet `srv-N` (machine serveur), initialises par `cloud-init-clt.yaml` et `cloud-init-srv.yaml` ;
-- deux enregistrements DNS `clt-N` et `srv-N` dans la zone `domain_name` ;
-- un tag commun (`tag_name`) et un projet DigitalOcean `training` qui regroupe les droplets.
+- un VPC `vpc-N` (plage `10.20.N.0/24`, decoupee depuis `vpc_base_range`) dans lequel sont places les deux droplets du groupe : les machines d'un meme groupe se voient sur le reseau prive, les groupes restent cloisonnes entre eux ;
+- deux enregistrements DNS `clt-N` et `srv-N` dans la zone `domain_name`, avec un TTL de 60 secondes adapte aux machines ephemeres ;
+- un tag commun (`tag_name`) et un projet DigitalOcean `training` qui regroupe les droplets (les VPC ne sont pas assignables a un projet, ils restent en dehors).
 
 ## Terminal web
 
@@ -38,8 +39,8 @@ travail Terraform. Definissez ensuite les variables dans le workspace :
 | `group_count` | Terraform | Nombre d'environnements |
 
 Les autres variables (`region_name`, `droplet_size`, `droplet_image`,
-`ssh_keys`) ont leur valeur dans `common.auto.tfvars`. Aucun secret ne doit etre
-ecrit dans ce dossier.
+`ssh_keys`, `vpc_base_range`) ont leur valeur dans `common.auto.tfvars`. Aucun
+secret ne doit etre ecrit dans ce dossier.
 
 ## Controle en local
 
