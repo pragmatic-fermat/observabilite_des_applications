@@ -3,19 +3,60 @@
 ##apt_reboot_if_required: False
 users:
   - name: root
-    lock-passwd: false
-    plain_text_passwd: "TrainingDay"
+    lock_passwd: false
+    plain_text_passwd: "${root_password}"
 ssh_pwauth: True ## This line enables ssh password authentication
 packages:
+  - ca-certificates
   - curl
   - git
+  - gnupg
   - net-tools
+write_files:
+  ## Terminal web : ttyd ecoute en local, Caddy le publie en HTTPS sur
+  ## https://${srv_machine}.${lab_domain} (certificat Let's Encrypt automatique).
+  ## Le service ouvre des sessions directement en root (machines ephemeres),
+  ## avec une basic auth (utilisateur stagiaire) dont le mot de passe vient de
+  ## la variable TFC webshell_password.
+  - content: |
+      [Unit]
+      Description=Terminal web des labs (ttyd)
+      After=network.target
+
+      [Service]
+      User=root
+      WorkingDirectory=/root
+      ExecStart=/usr/local/bin/ttyd -W -i 127.0.0.1 -p 7681 -c "stagiaire:${webshell_password}" bash
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+    path: /etc/systemd/system/ttyd.service
 runcmd:
   - ufw disable
   - sed -i -e '/^PermitRootLogin/s/^.*$/PermitRootLogin yes/' /etc/ssh/sshd_config
   - sed -i -e '/^PasswordAuthentication/s/^.*$/PasswordAuthentication yes/' /etc/ssh/sshd_config
   - restart ssh
   - rm -rf /etc/update-motd.d/99-one-click
+## Terminal web : Caddy en HTTPS devant ttyd.
+  - curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/gpg.key | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  - curl -fsSL https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt -o /etc/apt/sources.list.d/caddy-stable.list
+  - apt-get update
+  - DEBIAN_FRONTEND=noninteractive apt-get install -y caddy
+  - |
+    cat > /etc/caddy/Caddyfile <<'EOF'
+    {
+      email webmaster@${lab_domain}
+    }
+
+    https://${srv_machine}.${lab_domain} {
+      reverse_proxy 127.0.0.1:7681
+    }
+    EOF
+  - systemctl reload caddy || systemctl restart caddy
+  - curl -fsSL https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64 -o /usr/local/bin/ttyd
+  - chmod +x /usr/local/bin/ttyd
+  - systemctl enable --now ttyd
 snap:
     commands:
         00: ['install', 'yq']

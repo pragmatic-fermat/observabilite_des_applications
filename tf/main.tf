@@ -22,6 +22,17 @@ variable "ssh_keys" {
   default = []
 }
 
+variable "root_password" {
+  type      = string
+  sensitive = true
+}
+
+# Mot de passe du terminal web (ttyd), communique aux participants.
+variable "webshell_password" {
+  type      = string
+  sensitive = true
+}
+
 variable "group_count" {
     type = number
 }
@@ -42,7 +53,12 @@ resource "digitalocean_droplet" "clt" {
   tags               = [digitalocean_tag.tag.id]
   monitoring         = "true"
   ssh_keys           = var.ssh_keys
-  user_data = "${file("cloud-init-clt.yaml")}"
+  user_data = templatefile("${path.module}/cloud-init-clt.yaml", {
+    root_password     = var.root_password
+    webshell_password = var.webshell_password
+    lab_domain        = var.domain_name
+    clt_machine       = "clt-${count.index}"
+  })
 }
 
 resource "digitalocean_droplet" "srv" {
@@ -54,7 +70,12 @@ resource "digitalocean_droplet" "srv" {
   tags               = [digitalocean_tag.tag.id]
   monitoring         = "true"
   ssh_keys           = var.ssh_keys
-  user_data = "${file("cloud-init-srv.yaml")}"
+  user_data = templatefile("${path.module}/cloud-init-srv.yaml", {
+    root_password     = var.root_password
+    webshell_password = var.webshell_password
+    lab_domain        = var.domain_name
+    srv_machine       = "srv-${count.index}"
+  })
 }
 
 resource "digitalocean_record" "clt_dns" {
