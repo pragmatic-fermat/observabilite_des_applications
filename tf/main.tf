@@ -10,9 +10,6 @@ variable "droplet_size" {
 variable "droplet_image" {
   type        = string
 }
-variable "prefix" {
-  type        = string
-}
 
 variable "tag_name" {
   type        = string

@@ -1,7 +1,5 @@
 # DigitalOcean API token
 ## do_token = 
-# Resources will be prefixed with this to avoid clashing names
-#prefix = 
 # Region where resources should be created
 region_name = "ams3"
 # Droplet size
