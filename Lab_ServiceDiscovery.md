@@ -4,6 +4,28 @@ Mettre en place un load-balancer (`HAProxy`) dont les serveurs backend sont déf
 
 ![haproxy-consul](/img/haproxy-consul.png)
 
+Voici les composants en place une fois Consul et HAProxy installés :
+
+```mermaid
+flowchart LR
+  subgraph srv["VM srv"]
+    CONS["Consul server<br/>:8500, UI et API"]
+    DP["Dataplane API<br/>:5555"]
+    HAP["HAProxy<br/>:80 frontend, :8404 stats"]
+    DP -.->|"interroge l'API Consul"| CONS
+    DP -.->|"écrit les lignes server du backend"| HAP
+  end
+  subgraph clt["VM clt"]
+    CAG["Consul client<br/>service web déclaré"]
+    WEB["podinfo<br/>:80"]
+    CAG -.->|"enregistre le service web"| CONS
+  end
+  NAV["Navigateur"] -->|"HTTP sur :80"| HAP
+  HAP -->|"répartit vers le backend actif"| WEB
+```
+
+Ce schéma ne montre que l'état initial du lab, avant la section Scaling dynamique : un seul backend `podinfo`, sur `clt`. Je laisse de côté l'installation des binaires, les fichiers systemd et JSON, les règles `ufw`, l'interface web de Consul et le second `podinfo` ajouté sur `srv` en fin de lab. Les pointillés sont les échanges de service discovery ; le trait plein est le trafic HTTP vu par l'utilisateur.
+
 ## Pre-requis
 
 Connectez vous en SSH sur les 2 machines `srv` et `clt`
@@ -277,6 +299,29 @@ backend consul-backend-IP_clt-8500-web
   server SRV_l1MxH 127.0.0.1:80 disabled weight 128
   server SRV_QIzuA 127.0.0.1:80 disabled weight 128
   ```
+
+Pour comprendre ce que la commande `curl` a déclenché, voici la séquence complète, depuis l'enregistrement du service jusqu'à la requête HTTP :
+
+```mermaid
+sequenceDiagram
+    participant NAV as Navigateur
+    participant CAG as Consul client sur clt
+    participant CONS as Consul server sur srv
+    participant DP as Dataplane API sur srv
+    participant HAP as HAProxy sur srv
+    participant WEB as podinfo sur clt
+
+    CAG->>CONS: enregistre le service web, port 80
+    Note over DP,CONS: la commande curl active la découverte Consul sur :5555
+    DP->>CONS: interroge le service web sur :8500
+    CONS-->>DP: renvoie adresse et port du noeud
+    DP->>HAP: complète haproxy.cfg avec les lignes server
+    Note over HAP,WEB: les slots non utilisés restent disabled
+    NAV->>HAP: requête HTTP sur le frontend :80
+    HAP->>WEB: transmet au backend actif
+```
+
+Ce schéma ne montre que le mécanisme dynamique, pas l'ordre des commandes du lab : l'enregistrement par le client Consul a eu lieu à la section précédente, la déclaration à la Dataplane API par le `curl` ci-dessus, et le lancement de `podinfo` arrive ensuite. Le même cycle est rejoué à la section Scaling dynamique : un nouvel enregistrement du service `web` suffit à faire évoluer la liste des backends, sans réécrire le frontend.
 
 Lançons notre service web sur `clt` :
 ```

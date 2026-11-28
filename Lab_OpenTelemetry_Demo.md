@@ -8,6 +8,40 @@ C'est un lab très complet qui permet de voir l'ensemble de la stack d'observabi
 Notre objectif est de publier l'applications suivante, de l'instrumenter et de la debugger :
 ![darchi](/img/demo-archi.png)
 
+Voici le chemin de la télémétrie défini dans `otel-values.yaml` :
+
+```mermaid
+flowchart LR
+  subgraph k8s["Cluster Kubernetes, chart opentelemetry-demo"]
+    FP["frontend-proxy et ingress nginx<br/>chemin /"]
+    SVCS["Services de la demo<br/>frontend, cart, checkout, catalog"]
+    COLL["opentelemetry-collector<br/>ingress /otlp-http/, :4318"]
+    FP -->|"requêtes HTTP"| SVCS
+    SVCS -.->|"traces, métriques, logs OTLP"| COLL
+    FP -.->|"traces du navigateur OTLP HTTP"| COLL
+    subgraph pipe["Pipelines du collecteur"]
+      REC["receivers<br/>otlp et hostmetrics"]
+      PROC["processors<br/>batch 5s"]
+      EXP["exporters<br/>otlphttp/grafana_cloud et debug"]
+      REC --> PROC
+      PROC --> EXP
+    end
+    COLL --> REC
+  end
+  subgraph cloud["Grafana Cloud"]
+    GW["OTLP gateway<br/>auth basic user et token"]
+    TEMPO["Tempo : traces"]
+    LOKI["Loki : logs"]
+    MIMIR["Prometheus : métriques"]
+    GW --> TEMPO
+    GW --> LOKI
+    GW --> MIMIR
+  end
+  EXP -->|"OTLP HTTP"| GW
+```
+
+Ce schéma ne montre que le chemin de la télémétrie configuré dans `otel-values.yaml` : les trois pipelines (traces, métriques, logs) partagent le receiver `otlp`, le processor `batch` et l'exporter vers Grafana Cloud, le pipeline de métriques ajoutant le receiver `hostmetrics`. Je laisse de côté les composants désactivés dans le fichier de valeurs (`loadgenerator`, `accountingService`, `frauddetectionService`), les backends locaux mis à `enabled: false` (Jaeger, Prometheus, Grafana, OpenSearch) et les écrans du portail. Le trait plein est la requête utilisateur, les pointillés sont les signaux OTLP.
+
 Nous avons fait le choix du backend [Grafana Cloud](https://grafana.com/), mais d'autres sont possibles tels que [Datadog](https://docs.datadoghq.com/fr/opentelemetry/guide/otel_demo_to_datadog/?tab=kubernetes) ou [Dynatrace](https://www.dynatrace.com/news/blog/opentelemetry-demo-application-with-dynatrace/) pour ne citer qu'eux...
 
 En supposant que nous venons de réaliser le [Lab Logs](/Lab_Logs.md), repartons à vide sur notre cluster Kubernetes (**sur le serveur**):
@@ -264,6 +298,18 @@ Il est alors possible d'avoir cote à coté **corrélés** logs et traces
 
 ![loki](/img/loki3.png)
 
+Le lien entre logs et traces, réutilisé dans l'extra Feature Flag :
+
+```mermaid
+flowchart LR
+  FF["flagd : productCatalogFailure = on"] -.->|"déclenche l'erreur"| APP["Service ProductCatalog<br/>span en erreur, code 500"]
+  APP -->|"log avec trace_id"| LOKI["Loki : logs"]
+  APP -->|"span OTLP"| TEMPO["Tempo : traces"]
+  LOKI -.->|"je copie le trace_id"| TEMPO
+  TEMPO -->|"Status Message : FeatureFlag enabled"| DIAG["Cause identifiée"]
+```
+
+Ce schéma ne montre que la corrélation logs/traces et le déclenchement de la panne par le Feature Flag. Je laisse de côté les écrans Grafana, la requête TraceQL `{.http.status_code = 500 }` et les autres services de la demo. Le `trace_id` est le seul lien entre les deux sources : c'est lui que je copie depuis un log Loki pour retrouver la trace dans Tempo, puis le `Status Message` du span pour lire la cause.
 
 ## Extra : Feature Flag
 
