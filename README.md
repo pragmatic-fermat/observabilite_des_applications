@@ -12,7 +12,7 @@
 
 ## Comment lire les schémas
 
-Les labs contiennent des schémas [Mermaid](https://mermaid.js.org/), affichés directement dans le rendu Markdown de GitHub. Dans VS Code ou Codespaces, il faut une extension de prévisualisation Mermaid pour les voir. Je les ai placés au début des parties conceptuelles, avant les commandes, pour que le rôle de chaque composant soit lisible d'abord.
+Les labs contiennent des schémas [Mermaid](https://mermaid.js.org/), affichés directement dans le rendu Markdown de GitHub. VS Code et Codespaces récents les affichent aussi dans l'aperçu Markdown grâce à l'extension intégrée « Mermaid Markdown Features » (VS Code 1.121 et suivants) ; sur une version plus ancienne, une extension de prévisualisation Mermaid reste nécessaire. Je les ai placés au début des parties conceptuelles, avant les commandes, pour que le rôle de chaque composant soit lisible d'abord.
 
 Conventions communes :
 
