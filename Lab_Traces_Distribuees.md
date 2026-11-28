@@ -12,6 +12,33 @@ Voici l'application à déployer, sans télémétrie pour démarrer :
 
 ![topo](/img/tutorial-OTel-tracing-microservices_flow.png)
 
+Voici le parcours d'un message et, en pointillés, les exports de spans vers Jaeger :
+
+```mermaid
+flowchart LR
+  subgraph clt["VM clt"]
+    CURL["curl de test"]
+    ING["ingress nginx<br/>:8080"]
+    MSG["messenger Node<br/>:4000"]
+    NOT["notifier Node<br/>:5000"]
+    MQ["RabbitMQ<br/>:5672"]
+    MDB["messenger-db PostgreSQL<br/>:5432"]
+    NDB["notifier-db PostgreSQL<br/>:5433"]
+    JAE["Jaeger all-in-one<br/>:16686 UI, :4318 OTLP"]
+    CURL -->|"POST /conversations/1/messages"| ING
+    ING -->|"proxy_pass vers :4000"| MSG
+    MSG -->|"écrit le message"| MDB
+    MSG -->|"publie new_message"| MQ
+    MQ -->|"livre l'événement"| NOT
+    NOT -->|"enregistre la notification"| NDB
+    MSG -.->|"spans OTLP :4318"| JAE
+    NOT -.->|"spans OTLP :4318"| JAE
+    ING -.->|"spans OTLP :4317, module OTel"| JAE
+  end
+```
+
+Ce schéma ne montre que le parcours d'un message et la télémétrie associée, une fois toutes les instrumentations en place. Je laisse de côté les trois fenêtres de terminal, l'initialisation des bases, l'installation de Node et les écrans Jaeger. Traits pleins : trafic applicatif ; traits pointillés : spans, qui n'apparaissent qu'après instrumentation. L'ingress n'émet aucun span avant la section Instrumenter Nginx, et les premiers tests passent directement par `localhost:4000`, sans reverse proxy.
+
 PS : Ce Lab est librement inspiré de cet [article Nginx](https://www.f5.com/company/blog/nginx/nginx-tutorial-opentelemetry-tracing-understand-microservices)
 
 ## Recuperation des sources
@@ -244,6 +271,15 @@ Sending notification of new message via sms to 12027621401
 Voici notre objectif :
 ![flow](/img/tutorial-OTel-tracing-microservices_topology.png)
 
+L'instrumentation se fait en trois états successifs du fichier `tracing.mjs` :
+
+```mermaid
+flowchart LR
+  S1["1. ConsoleSpanExporter<br/>spans affichés dans le terminal"] --> S2["2. OTLPTraceExporter<br/>Jaeger reçoit enfin des traces"] --> S3["3. Resource service.name<br/>le service s'appelle messenger"]
+```
+
+Ce schéma ne montre que la progression du fichier `tracing.mjs` et l'effet attendu à chaque étape. Je laisse de côté les installations `npm`, le code de l'application et les variantes `new-messenger-*.mjs`. Il explique le constat de la section Jaeger : sans exporter OTLP, l'interface reste vide même si des spans s'affichent dans la console ; le nom du service, lui, n'apparaît qu'à la troisième étape.
+
 Commençons par auto-instrumenter:
 
 Interrompez (Ctrl-C) le service node `messenger`
@@ -454,6 +490,29 @@ node --import ./tracing.mjs index.mjs
 On constate dans Jaeger que les traces remontent bien
 
 ![jaeger4](/img/tutorial-OTel-tracing-microservices_ch2-notifier.png)
+
+Le principe qu'illustrent ces traces :
+
+```mermaid
+sequenceDiagram
+    participant CURL as curl
+    participant ING as ingress nginx
+    participant MSG as messenger
+    participant MQ as RabbitMQ
+    participant NOT as notifier
+    participant JAE as Jaeger
+
+    CURL->>ING: POST /conversations/1/messages
+    ING->>MSG: requête HTTP avec contexte de trace
+    MSG->>MQ: publie new_message avec le contexte
+    MQ->>NOT: livre l'événement
+    Note over ING,NOT: un même trace_id relie les spans des trois services
+    ING-->>JAE: span racine OTLP
+    MSG-->>JAE: spans enfants OTLP
+    NOT-->>JAE: span du consommateur OTLP
+```
+
+Ce schéma illustre le principe de propagation du contexte de trace, ce n'est pas une capture du lab. Je ne montre que les échanges utiles pour comprendre pourquoi un même `trace_id` relie ingress, messenger et notifier, et pourquoi un service non instrumenté crée un trou dans la trace. Les bases de données, les en-têtes exacts et les écrans Jaeger ne sont pas représentés.
 
 ## Mise en place d'un Reverse Proxy Nginx
 

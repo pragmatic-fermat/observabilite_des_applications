@@ -12,6 +12,25 @@ Sur la VM `srv`, nous allons :
 
 Nous constaterons que l'utilisation de logs structurés est plus que souhaitable...
 
+Voici le chemin des logs mis en place sur cette VM :
+
+```mermaid
+flowchart LR
+  subgraph srv["VM srv"]
+    NG["nginx<br/>access.log et error.log"]
+    AU["/var/log/auth.log"]
+    FB["Filebeat<br/>module nginx et input log"]
+    ES["Elasticsearch<br/>:9200, index nginx-logs"]
+    KI["Kibana<br/>:5601, Discover"]
+    NG -->|"module nginx : champs structurés"| FB
+    AU -->|"input log : texte brut"| FB
+    FB -->|"output.elasticsearch"| ES
+    ES -->|"lecture via l'index pattern *"| KI
+  end
+```
+
+Ce schéma ne montre que le trajet des logs sur `srv`. Je laisse de côté le réglage `vm.max_map_count`, le temps de démarrage de Kibana et les écrans de recherche. La distinction à retenir est celle des deux flèches qui arrivent sur Filebeat : le module `nginx` découpe les lignes en champs, alors que `auth.log` reste une ligne de texte, ce qui explique l'écart de recherche constaté dans les captures plus bas.
+
 ### Installation de `nginx`
 ```
 apt install -y nginx
@@ -228,6 +247,25 @@ helm uninstall grafana-k8s-monitoring
 Notons
 
 ![grafana_labs](/img/graf5.png)
+
+Ce que le chart Helm a déployé, vu du côté des logs :
+
+```mermaid
+flowchart LR
+  subgraph k8s["Cluster Kubernetes"]
+    PODS["Pods des 2 noeuds"]
+    ALLOY["Alloy, DaemonSet alloy-logs<br/>un exemplaire par noeud"]
+    PODS -->|"lecture des logs des containers"| ALLOY
+  end
+  subgraph cloud["Grafana Cloud"]
+    PORTAL["Portail de monitoring"]
+    DRILL["Loki : Explore, puis Drilldown"]
+    PORTAL -.->|"menus Explore / Drilldown"| DRILL
+  end
+  ALLOY -->|"envoi des logs"| PORTAL
+```
+
+Ce schéma ne montre que le chemin des logs du cluster vers Grafana Cloud. Je laisse de côté les métriques, remontées par un autre DaemonSet nommé `grafana-k8s-monitoring-prometheus-node-exporter`, le déploiement Helm, le Token et les écrans de vérification du portail. La commande `kubectl get ds` en fin de lab sert à vérifier qu'un exemplaire d'Alloy tourne bien sur chaque noeud.
 
 ## Visualisation dans `Grafana Loki`
 

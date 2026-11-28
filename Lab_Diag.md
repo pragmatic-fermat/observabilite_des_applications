@@ -14,6 +14,34 @@ Ce lab peut se dérouler sur l'une des VMs mise à votre disposition.
 Il s'agit de mettre en place cet environnement :
 ![lab-diag](/img/lab-diag.png)
 
+Voici la chaîne applicative à diagnostiquer et les signaux disponibles :
+
+```mermaid
+flowchart LR
+  subgraph app["Chaîne applicative, 3 services"]
+    SH["shopper<br/>15 réplicas"] -->|"GET /products"| GS["grocery-store<br/>:5000"]
+    GS -->|"GET /inventory"| LI["legacy-inventory<br/>:5001"]
+  end
+  subgraph sig["Chaîne d'observabilité préconfigurée"]
+    COLL["opentelemetry-collector<br/>:4317 OTLP"]
+    JAE["Jaeger<br/>:16686, traces"]
+    LOK["Loki<br/>:3100, logs"]
+    PROM["Prometheus<br/>:9090, métriques"]
+    GRAF["Grafana<br/>:3000, 3 data sources"]
+    COLL -->|"pipeline traces"| JAE
+    COLL -->|"pipeline logs"| LOK
+    COLL -->|"pipeline metrics :8889"| PROM
+    JAE --> GRAF
+    LOK --> GRAF
+    PROM --> GRAF
+  end
+  SH -.->|"signaux OTLP"| COLL
+  GS -.->|"signaux OTLP"| COLL
+  LI -.->|"signaux OTLP"| COLL
+```
+
+Ce schéma ne montre que les trois services applicatifs et les trois pipelines du collecteur, qui sont le coeur du diagnostic. Je laisse de côté les autres conteneurs du `docker-compose.yaml` (Promtail, volumes, limites de ressources), les écrans Grafana et le détail des cinq scénarios. Les scénarios `example1` à `example5` ne changent que les images de ces trois services via la variable `$suff` ; la chaîne d'observabilité reste identique d'un scénario à l'autre, ce qui permet de comparer les traces d'une version à l'autre.
+
 Récupérer localement sur votre serveur l'arborescence de [`config`](/config/), c-a-d l'ensemble des fichiers de configuration des outils d'observabilité du lab :
 ```
 git clone https://github.com/pragmatic-fermat/observabilite_des_applications.git

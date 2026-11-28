@@ -7,6 +7,23 @@ Dans ce lab nous voyons 2 approches de la récupération des métriques :
 - mode **Pull** : un serveur central récupère les métriques, c'est le cas de Prometheus
 - mode **Push** : sur chaque équipement, un agent exporte les métriques vers un serveur central, c'est le cas de Datadog
 
+Les deux approches diffèrent par le sens de la collecte :
+
+```mermaid
+flowchart LR
+  subgraph pull["Mode Pull : Prometheus"]
+    PROM["Prometheus sur srv"] -->|"1. scrape GET /metrics"| NODE["NodeExporter sur clt"]
+    NODE -->|"2. métriques en texte"| PROM
+    PROM -->|"3. écriture"| TSDB["TSDB Prometheus"]
+  end
+  subgraph push["Mode Push : Datadog"]
+    AGENT["Agent Datadog sur clt"] -->|"1. collecte locale"| HOST["Système et MySQL"]
+    AGENT -->|"2. envoi"| DD["Portail Datadog"]
+  end
+```
+
+Ce schéma ne montre que la différence de sens entre les deux modes. Je laisse de côté Grafana, les dashboards, les métriques custom, les ports et l'authentification : chacun est repris dans la partie correspondante du lab.
+
 # Contenu
 
 - [NodeExporter/Prometheus/Grafana](#nodeexporterprometheusgrafana)
@@ -36,6 +53,27 @@ On utilise 2 VMs :
 Prometheus "scrape" (c-a-d lit et analyse) les métriques sur les serveurs supervisés, les stocke dans sa TSDB, accessible pour Grafana.
 
 ![prom-arch](img/prom-architecture.png)
+
+La chaîne complète du mode Pull, avec les ports utilisés dans le lab :
+
+```mermaid
+flowchart LR
+  subgraph clt["VM clt, supervisée"]
+    NE["NodeExporter<br/>:9100 /metrics"]
+    TXT["/home/textfile/ma_metrique_custom.prom<br/>métrique custom"]
+    APP["Appli Flask instrumentée<br/>:5000 site, :8000 /metrics"]
+    TXT -->|"lu par le collector textfile"| NE
+  end
+  subgraph srv["VM srv, supervision"]
+    PROM["Prometheus<br/>:9090 et TSDB"]
+    GRAF["Grafana<br/>:3000, dashboard 1860"]
+    GRAF -->|"requêtes PromQL vers http://prometheus:9090"| PROM
+  end
+  PROM -->|"scrape /metrics toutes les 10s"| NE
+  APP -.->|"non scrapé dans ce lab"| PROM
+```
+
+Ce schéma ne montre que la chaîne Pull du lab. Je laisse de côté la cible `prometheus:9090` que Prometheus scrape sur lui-même, le contenu de `docker-compose.yml`, et toute la partie Datadog traitée plus bas. Le trait pointillé signale un point facile à manquer : l'application Flask expose ses métriques sur le port 8000, mais aucune cible de scrape n'est ajoutée pour ce port, elles se consultent donc dans le navigateur uniquement.
 
 ## Installation d'un serveur `Prometheus`
 
@@ -429,6 +467,25 @@ Vous pouvez créer une alerte (monitor) sur cette [page](https://app.datadoghq.e
 ## Métrique custom dans Datadog
 
 Supposons que nous souhaitions connaître le nombre de lignes dans les tables d'une base de données.
+
+Voici le chemin d'une métrique custom, de la requête SQL jusqu'au dashboard :
+
+```mermaid
+flowchart LR
+  subgraph clt["VM clt"]
+    AG["Agent Datadog<br/>intégration MySQL"]
+    DB["MariaDB classicmodels<br/>:3306"]
+    AG -->|"custom_queries : COUNT et TABLE_ROWS"| DB
+  end
+  subgraph cloud["Datadog"]
+    DD["Portail Datadog"]
+    EXP["Metric Explorer et dashboards"]
+    DD -.->|"navigation vers"| EXP
+  end
+  AG -->|"push des gauges et du tag table_name"| DD
+```
+
+Ce schéma ne montre que le chemin des métriques custom définies dans `conf.yaml`. Je laisse de côté l'installation de l'agent, les métriques système remontées par défaut et la création d'une alerte. Le tag `classicmodels.table_name`, produit par la troisième requête, est ce qui rend possible la TopList de fin de lab : c'est le champ à mettre dans `avg by`.
 
 ### Installation d'une base de données sur le serveur supervisé
 
